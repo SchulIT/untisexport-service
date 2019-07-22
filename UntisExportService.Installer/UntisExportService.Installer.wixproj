@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" InitialTargets="EnsureWixToolsetInstalled" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <ProductVersion>3.10</ProductVersion>
+    <ProjectGuid>64ab98de-043e-4e36-939a-8a66ae720dd2</ProjectGuid>
+    <SchemaVersion>2.0</SchemaVersion>
+    <OutputName>UntisExportService.Installer</OutputName>
+    <OutputType>Package</OutputType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>Debug</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <InstallerPlatform>x64</InstallerPlatform>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Product.wxs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="strings.de.wxl" />
+    <EmbeddedResource Include="strings.en.wxl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="EULA.rtf" />
+    <Content Include="icon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\UntisExportService.Console\UntisExportService.Console.csproj">
+      <Name>UntisExportService.Console</Name>
+      <Project>{5e95b929-9069-4054-b4ba-dd2d2d4e0c77}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+      <TargetFrameworkIdentifier>netcoreapp2.2</TargetFrameworkIdentifier>
+      <Runtime>win-x64</Runtime>
+      <IsDotnetSDKProject>True</IsDotnetSDKProject>
+    </ProjectReference>
+    <ProjectReference Include="..\UntisExportService.Core\UntisExportService.Core.csproj">
+      <Name>UntisExportService.Core</Name>
+      <Project>{6db65d9a-3fb7-4854-9959-bbc4bcd592a8}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+    <ProjectReference Include="..\UntisExportService.Service\UntisExportService.Service.csproj">
+      <Name>UntisExportService.Service</Name>
+      <Project>{08d16d89-fefe-44a9-a574-380400edb961}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WixExtension Include="WixUIExtension">
+      <HintPath>$(WixExtDir)\WixUIExtension.dll</HintPath>
+      <Name>WixUIExtension</Name>
+    </WixExtension>
+  </ItemGroup>
+  <Import Project="$(WixTargetsPath)" Condition=" '$(WixTargetsPath)' != '' " />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets" Condition=" '$(WixTargetsPath)' == '' AND Exists('$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets') " />
+  <Target Name="EnsureWixToolsetInstalled" Condition=" '$(WixTargetsImported)' != 'true' ">
+    <Error Text="The WiX Toolset v3.11 (or newer) build tools must be installed to build this project. To download the WiX Toolset, see http://wixtoolset.org/releases/" />
+  </Target>
+  <Target Name="BeforeBuild">
+    <Exec WorkingDirectory="%(ProjectReference.RootDir)%(ProjectReference.Directory)" Command="dotnet publish -c $(Configuration) -f %(ProjectReference.TargetFrameworkIdentifier) -r %(ProjectReference.Runtime)" Condition="'%(ProjectReference.IsDotnetSDKProject)' == 'True'" />
+    <ItemGroup>
+      <LinkerBindInputPaths Include="%(ProjectReference.RootDir)%(ProjectReference.Directory)bin\$(Configuration)\%(ProjectReference.TargetFrameworkIdentifier)\%(ProjectReference.Runtime)\publish" />
+    </ItemGroup>
+    <HeatDirectory
+          DirectoryRefId="INSTALLFOLDER" 
+          OutputFile="obj\$(Configuration)\%(ProjectReference.Name).wxs" 
+          Directory="%(ProjectReference.RootDir)%(ProjectReference.Directory)bin\$(Configuration)\%(ProjectReference.TargetFrameworkIdentifier)\%(ProjectReference.Runtime)\publish" 
+          ComponentGroupName="SourceComponentGroup"
+          ToolPath="$(WixToolPath)" 
+          AutogenerateGuids="True"
+          GenerateGuidsNow="True"
+          SuppressCom="True"
+          SuppressRegistry="True"
+          SuppressFragments="true"
+          SuppressRootDirectory="true"
+          Condition="'%(ProjectReference.IsDotnetSDKProject)' == 'True'"/>
+    <ItemGroup>
+      <Compile Include="obj\$(Configuration)\%(ProjectReference.Name).wxs" Condition="'%(ProjectReference.IsDotnetSDKProject)' == 'True'" />
+    </ItemGroup>
+  </Target>
+  <!--
+	To modify your build process, add your task inside one of the targets below and uncomment it.
+	Other similar extension points exist, see Wix.targets.
+	<Target Name="BeforeBuild">
+	</Target>
+	<Target Name="AfterBuild">
+	</Target>
+	-->
+</Project>
