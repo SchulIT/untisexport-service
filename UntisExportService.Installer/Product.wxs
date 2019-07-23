@@ -28,16 +28,19 @@
                 <File Name="Microsoft.Extensions.Logging.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
                 <File Name="Microsoft.Extensions.Options.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
                 <File Name="Microsoft.Extensions.Primitives.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
+                <File Name="Newtonsoft.Json.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
                 <File Name="NLog.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
                 <File Name="NLog.Extensions.Logging.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
                 <File Name="SchulIT.UntisExport.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
                 <File Name="System.Buffers.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
+                <File Name="System.ComponentModel.Annotations.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
                 <File Name="System.Memory.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
                 <File Name="System.Numerics.Vectors.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
                 <File Name="System.Runtime.CompilerServices.Unsafe.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
                 <File Name="UntisExportService.Core.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
                 
                 <File Id="UntisExportService.Service.exe" Name="UntisExportService.Service.exe" Source="$(var.UntisExportService.Service.TargetDir)" KeyPath="yes" />
+                <File Id="UntisExportService.Service.exe.config" Name="UntisExportService.Service.exe.config" Source="$(var.UntisExportService.Service.TargetDir)" />
                 <File Id="nlog.config.service" Name="nlog.config" Source="$(var.UntisExportService.Service.TargetDir)" />
 
                 <ServiceInstall Id="ServiceInstaller" Type="ownProcess" Name="UntisExportService" DisplayName="UntisExportService" Description="Starts UntisExportService" Start="auto" Account="[SERVICEACCOUNT]" Password="[SERVICEPASSWORD]" ErrorControl="normal"/>
