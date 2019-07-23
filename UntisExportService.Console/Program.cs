@@ -15,16 +15,16 @@ namespace UntisExportService.Console
         {
             var builder = new ContainerBuilder();
 
-            builder.RegisterType<JsonSettingsService>().As<ISettingsService>();
-            builder.RegisterType<Http>().As<IHttp>();
-            builder.RegisterType<IccUploadService>().As<IUploadService>();
-            builder.RegisterType<ExportService>().As<IExportService>();
-            builder.RegisterType<FileSystemWatcherFactory>().As<IFileSystemWatcherFactory>();
+            builder.RegisterType<JsonSettingsService>().As<ISettingsService>().SingleInstance();
+            builder.RegisterType<Http>().As<IHttp>().SingleInstance();
+            builder.RegisterType<IccUploadService>().As<IUploadService>().SingleInstance();
+            builder.RegisterType<ExportService>().As<IExportService>().SingleInstance();
+            builder.RegisterType<FileSystemWatcherFactory>().As<IFileSystemWatcherFactory>().SingleInstance();
 
             builder.RegisterGeneric(typeof(Logger<>)).As(typeof(ILogger<>));
             builder.RegisterType<NLogLoggerFactory>().AsImplementedInterfaces().InstancePerLifetimeScope();
 
-            builder.RegisterType<UntisExporter>().As<IUntisExporter>();
+            builder.RegisterType<UntisExporter>().As<IUntisExporter>().SingleInstance();
 
             var container = builder.Build();
 
