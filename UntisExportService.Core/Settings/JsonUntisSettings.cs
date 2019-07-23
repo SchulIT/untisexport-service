@@ -6,6 +6,9 @@ namespace UntisExportService.Core.Settings
 {
     public class JsonUntisSettings : IUntisSettings
     {
+        [JsonProperty("threshold")]
+        public int SyncThresholdInSeconds { get; set; } = 10;
+
         [JsonProperty("remove_exams")]
         public bool RemoveExams { get; set; } = false;
 

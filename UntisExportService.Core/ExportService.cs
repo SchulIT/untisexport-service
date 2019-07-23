@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using SchulIT.UntisExport;
+using SchulIT.UntisExport.Model;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using SchulIT.UntisExport;
-using SchulIT.UntisExport.Model;
 using UntisExportService.Core.FileSystem;
 using UntisExportService.Core.Settings;
 using UntisExportService.Core.Upload;
@@ -13,6 +13,8 @@ namespace UntisExportService.Core
 {
     public class ExportService : IExportService
     {
+        private bool isExportRunning = false;
+        private readonly object exportLock = new object();
 
         private const int ExamsId = 0;
 
@@ -47,20 +49,43 @@ namespace UntisExportService.Core
         {
             logger.LogInformation("Detected filesystem changes.");
 
-            if(settingsService.Settings.IsServiceEnabled == false)
+            if (settingsService.Settings.IsServiceEnabled == false)
             {
                 logger.LogInformation("Do not publish to ICC as service is disabled in settings file.");
                 return;
             }
 
+            lock (exportLock)
+            {
+                isExportRunning = true;
+            }
+
+            if (isExportRunning)
+            {
+                logger.LogDebug("Export is already running, skipping.");
+                return;
+            }
+
+            if(settingsService.Settings.Untis.SyncThresholdInSeconds > 0)
+            {
+                logger.LogDebug($"Waiting {settingsService.Settings.Untis.SyncThresholdInSeconds} seconds for Untis to create all files.");
+                await Task.Delay(TimeSpan.FromSeconds(settingsService.Settings.Untis.SyncThresholdInSeconds));
+            }
+
             // Read all files in directory
             var files = Directory.GetFiles(settingsService.Settings.HtmlPath, "*.htm");
+
+            foreach(var file in files)
+            {
+                logger.LogDebug($"Found file {file}.");
+            }
+
             var substitutions = new List<Substitution>();
             var infotexts = new List<Infotext>();
 
             var settings = GetExportSettings();
 
-            foreach(var file in files)
+            foreach (var file in files)
             {
                 using (var streamReader = new StreamReader(file))
                 {
@@ -79,6 +104,11 @@ namespace UntisExportService.Core
             await uploadService.UploadInfotextsAsync(infotexts).ConfigureAwait(false);
 
             logger.LogInformation("Successfully published to ICC.");
+            
+            lock(exportLock)
+            {
+                isExportRunning = false;
+            }
         }
 
         private Task RemoveSubstitutionsIfNecessaryAsync(List<Substitution> substitutions)

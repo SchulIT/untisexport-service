@@ -5,6 +5,9 @@ namespace UntisExportService.Core.Settings
 {
     public interface IUntisSettings
     {
+
+        int SyncThresholdInSeconds { get; }
+
         bool RemoveExams { get; }
 
         bool FixBrokenPTags { get; }
