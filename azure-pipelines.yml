@@ -32,20 +32,16 @@ steps:
     solution: '$(solution)'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+    msbuildArgs: '/p:RunWixToolsOutOfProc=true'
 
-- task: NuGetCommand@2
-  displayName: 'nuget pack'
+- task: CmdLine@2
   inputs:
-    command: pack
-    packagesToPack: '**\*.nuspec'
+    script: copy UntisExportService.Installer\bin\Release\de-de\UntisExportService.Installer.msi setup-$(Build.SourceBranchName)-de.msi
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
 
-- task: NuGetCommand@2
-  displayName: 'nuget push'
+- task: CmdLine@2
   inputs:
-    command: push
-    publishFeedCredentials: 'NuGet.org'
-    nuGetFeedType: external
-    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg'
+    script: copy UntisExportService.Installer\bin\Release\en-us\UntisExportService.Installer.msi setup-$(Build.SourceBranchName)-en.msi
   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
 
 - task: GitHubRelease@0
@@ -53,7 +49,5 @@ steps:
   inputs:
     gitHubConnection: 'GitHub.com'
     repositoryName: schulit/untisexport-service
-    assets: |
-      '$(Build.ArtifactStagingDirectory)/**/*.nupkg'
-      'UntisExportService/**/*.dll'
+    assets: 'setup-*.msi'
   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
