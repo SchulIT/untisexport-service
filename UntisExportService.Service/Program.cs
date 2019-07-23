@@ -1,17 +1,26 @@
-﻿using System.ServiceProcess;
+﻿using System;
+using System.ServiceProcess;
 
 namespace UntisExportService.Service
 {
     static class Program
     {
-        static void Main()
+        static void Main(string[] args)
         {
-            ServiceBase[] ServicesToRun;
-            ServicesToRun = new ServiceBase[]
+            if (Environment.UserInteractive)
             {
-                new UntisExportService()
-            };
-            ServiceBase.Run(ServicesToRun);
+                var service = new UntisExportService();
+                service.TestStartupAndStop(args);
+            }
+            else
+            {
+                ServiceBase[] ServicesToRun;
+                ServicesToRun = new ServiceBase[]
+                {
+                    new UntisExportService()
+                };
+                ServiceBase.Run(ServicesToRun);
+            }
         }
     }
 }

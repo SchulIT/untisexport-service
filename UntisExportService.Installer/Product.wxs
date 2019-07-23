@@ -37,7 +37,7 @@
                 <File Name="System.Runtime.CompilerServices.Unsafe.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
                 <File Name="UntisExportService.Core.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
                 
-                <File Id="UntisExportService.Service.exe" Name="UntisExportService.Service.exe" Source="$(var.UntisExportService.Service.TargetDir)" />
+                <File Id="UntisExportService.Service.exe" Name="UntisExportService.Service.exe" Source="$(var.UntisExportService.Service.TargetDir)" KeyPath="yes" />
                 <File Id="nlog.config.service" Name="nlog.config" Source="$(var.UntisExportService.Service.TargetDir)" />
 
                 <ServiceInstall Id="ServiceInstaller" Type="ownProcess" Name="UntisExportService" DisplayName="UntisExportService" Description="Starts UntisExportService" Start="auto" Account="[SERVICEACCOUNT]" Password="[SERVICEPASSWORD]" ErrorControl="normal"/>

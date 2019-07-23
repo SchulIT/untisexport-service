@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using SchulIT.UntisExport;
+using System;
 using System.ServiceProcess;
 using UntisExportService.Core;
 using UntisExportService.Core.FileSystem;
@@ -17,7 +18,10 @@ namespace UntisExportService.Service
         public UntisExportService()
         {
             InitializeComponent();
+        }
 
+        protected override void OnStart(string[] args)
+        {
             var builder = new ContainerBuilder();
 
             builder.RegisterType<JsonSettingsService>().As<ISettingsService>().SingleInstance();
@@ -34,16 +38,21 @@ namespace UntisExportService.Service
             var container = builder.Build();
 
             service = container.Resolve<IExportService>();
-        }
 
-        protected override void OnStart(string[] args)
-        {
             service.Start();
         }
 
         protected override void OnStop()
         {
-            service.Start();
+            service?.End();
+            service = null;
+        }
+
+        internal void TestStartupAndStop(string[] args)
+        {
+            OnStart(args);
+            Console.ReadLine();
+            OnStop();
         }
     }
 }
