@@ -124,7 +124,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="UntisExporter.cs" />
     <Compile Include="UntisExportService.cs">
       <SubType>Component</SubType>
     </Compile>
