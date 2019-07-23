@@ -29,6 +29,7 @@ namespace UntisExportService.Core
             this.settingsService = settingsService;
             this.watcher = watcher;
             this.uploadService = uploadService;
+            this.untisExporter = untisExporter;
             this.logger = logger;
         }
 
