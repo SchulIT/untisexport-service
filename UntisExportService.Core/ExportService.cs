@@ -22,10 +22,10 @@ namespace UntisExportService.Core
         private readonly IUntisExporter untisExporter;
         private readonly ILogger<ExportService> logger;
 
-        public ExportService(ISettingsService settingsService, IFileSystemWatcherFactory watcherFactory, IUploadService uploadService, IUntisExporter untisExporter, ILogger<ExportService> logger)
+        public ExportService(ISettingsService settingsService, IFileSystemWatcher watcher, IUploadService uploadService, IUntisExporter untisExporter, ILogger<ExportService> logger)
         {
             this.settingsService = settingsService;
-            this.watcher = watcherFactory.CreateWatcher();
+            this.watcher = watcher;
             this.uploadService = uploadService;
             this.logger = logger;
         }

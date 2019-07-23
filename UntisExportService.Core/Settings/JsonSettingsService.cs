@@ -24,11 +24,11 @@ namespace UntisExportService.Core.Settings
         private readonly IFileSystemWatcher watcher;
         private readonly ILogger<JsonSettingsService> logger;
 
-        public JsonSettingsService(IFileSystemWatcherFactory watcherFactory, ILogger<JsonSettingsService> logger)
+        public JsonSettingsService(IFileSystemWatcher watcher, ILogger<JsonSettingsService> logger)
         {
             this.logger = logger;
 
-            this.watcher = watcherFactory.CreateWatcher();
+            this.watcher = watcher;
             this.watcher.Changed += OnSettingsFileChanged;
             this.watcher.Path = Path.GetDirectoryName(GetPath());
 

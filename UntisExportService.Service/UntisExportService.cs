@@ -24,7 +24,7 @@ namespace UntisExportService.Service
             builder.RegisterType<Http>().As<IHttp>().SingleInstance();
             builder.RegisterType<IccUploadService>().As<IUploadService>().SingleInstance();
             builder.RegisterType<ExportService>().As<IExportService>().SingleInstance();
-            builder.RegisterType<FileSystemWatcherFactory>().As<IFileSystemWatcherFactory>().SingleInstance();
+            builder.RegisterType<FileSystemWatcher>().As<IFileSystemWatcher>();
 
             builder.RegisterGeneric(typeof(Logger<>)).As(typeof(ILogger<>));
             builder.RegisterType<NLogLoggerFactory>().AsImplementedInterfaces().InstancePerLifetimeScope();
