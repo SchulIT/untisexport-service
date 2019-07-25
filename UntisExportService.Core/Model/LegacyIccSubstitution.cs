@@ -15,7 +15,7 @@ namespace UntisExportService.Core.Model
         public int Lesson { get; set; }
 
         [JsonProperty("AbsenceTeacher")]
-        public string AbsenceTeacher { get; set; }
+        public string Teacher { get; set; }
 
         [JsonProperty("ReplacementTeacher")]
         public string ReplacementTeacher { get; set; }
@@ -39,7 +39,7 @@ namespace UntisExportService.Core.Model
         public string[] ReplacementGrades { get; set; }
 
         [JsonProperty("AbsenceReason")]
-        public string AbsenceReason { get; set; }
+        public string Reason { get; set; }
 
         [JsonProperty("Description")]
         public string Description { get; set; }

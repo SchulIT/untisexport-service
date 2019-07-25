@@ -32,7 +32,7 @@ namespace UntisExportService.Core.Upload
                         Id = x.Id,
                         Date = x.Date,
                         Lesson = lesson,
-                        AbsenceTeacher = x.Teachers.FirstOrDefault(),
+                        Teacher = x.Teachers.FirstOrDefault(),
                         ReplacementTeacher = x.ReplacementTeachers.FirstOrDefault(),
                         Subject = x.Subject,
                         ReplacementSubject = x.ReplacementSubject,
