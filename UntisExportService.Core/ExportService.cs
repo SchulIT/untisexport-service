@@ -48,67 +48,74 @@ namespace UntisExportService.Core
 
         private async void OnWatcherChanged(IFileSystemWatcher sender, OnChangedEventArgs args)
         {
-            logger.LogInformation("Detected filesystem changes.");
-
-            if (settingsService.Settings.IsServiceEnabled == false)
+            try
             {
-                logger.LogInformation("Do not publish to ICC as service is disabled in settings file.");
-                return;
-            }
+                logger.LogInformation("Detected filesystem changes.");
 
-            lock (exportLock)
-            {
-                isExportRunning = true;
-            }
-
-            if (isExportRunning)
-            {
-                logger.LogDebug("Export is already running, skipping.");
-                return;
-            }
-
-            if(settingsService.Settings.Untis.SyncThresholdInSeconds > 0)
-            {
-                logger.LogDebug($"Waiting {settingsService.Settings.Untis.SyncThresholdInSeconds} seconds for Untis to create all files.");
-                await Task.Delay(TimeSpan.FromSeconds(settingsService.Settings.Untis.SyncThresholdInSeconds));
-            }
-
-            // Read all files in directory
-            var files = Directory.GetFiles(settingsService.Settings.HtmlPath, "*.htm");
-
-            foreach(var file in files)
-            {
-                logger.LogDebug($"Found file {file}.");
-            }
-
-            var substitutions = new List<Substitution>();
-            var infotexts = new List<Infotext>();
-
-            var settings = GetExportSettings();
-
-            foreach (var file in files)
-            {
-                using (var streamReader = new StreamReader(file))
+                if (settingsService.Settings.IsServiceEnabled == false)
                 {
-                    var html = await streamReader.ReadToEndAsync();
-                    var result = await untisExporter.ParseHtmlAsync(settings, html);
+                    logger.LogInformation("Do not publish to ICC as service is disabled in settings file.");
+                    return;
+                }
 
-                    substitutions.AddRange(result.Substitutions);
-                    infotexts.AddRange(result.Infotexts);
+                lock (exportLock)
+                {
+                    if (isExportRunning)
+                    {
+                        logger.LogDebug("Export is already running, skipping.");
+                        return;
+                    }
+
+                    isExportRunning = true;
+                }
+
+                if (settingsService.Settings.Untis.SyncThresholdInSeconds > 0)
+                {
+                    logger.LogDebug($"Waiting {settingsService.Settings.Untis.SyncThresholdInSeconds} seconds for Untis to create all files.");
+                    await Task.Delay(TimeSpan.FromSeconds(settingsService.Settings.Untis.SyncThresholdInSeconds));
+                }
+
+                // Read all files in directory
+                var files = Directory.GetFiles(settingsService.Settings.HtmlPath, "*.htm");
+
+                foreach (var file in files)
+                {
+                    logger.LogDebug($"Found file {file}.");
+                }
+
+                var substitutions = new List<Substitution>();
+                var infotexts = new List<Infotext>();
+
+                var settings = GetExportSettings();
+
+                foreach (var file in files)
+                {
+                    using (var streamReader = new StreamReader(file))
+                    {
+                        var html = await streamReader.ReadToEndAsync();
+                        var result = await untisExporter.ParseHtmlAsync(settings, html);
+
+                        substitutions.AddRange(result.Substitutions);
+                        infotexts.AddRange(result.Infotexts);
+                    }
+                }
+
+                await RemoveSubstitutionsIfNecessaryAsync(substitutions).ConfigureAwait(false);
+
+                // Pack everything and and upload
+                await uploadService.UploadSubstitutionsAsync(substitutions).ConfigureAwait(false);
+                await uploadService.UploadInfotextsAsync(infotexts).ConfigureAwait(false);
+
+                logger.LogInformation("Successfully published to ICC.");
+
+                lock (exportLock)
+                {
+                    isExportRunning = false;
                 }
             }
-
-            await RemoveSubstitutionsIfNecessaryAsync(substitutions).ConfigureAwait(false);
-
-            // Pack everything and and upload
-            await uploadService.UploadSubstitutionsAsync(substitutions).ConfigureAwait(false);
-            await uploadService.UploadInfotextsAsync(infotexts).ConfigureAwait(false);
-
-            logger.LogInformation("Successfully published to ICC.");
-            
-            lock(exportLock)
+            catch (Exception e)
             {
-                isExportRunning = false;
+                logger.LogError(e, "Something went terribly wrong.");
             }
         }
 
