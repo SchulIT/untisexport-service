@@ -30,7 +30,7 @@ namespace UntisExportService.Core.Upload
 
                 if(!response.IsSuccessStatusCode)
                 {
-                    logger.LogError($"Response code did not indicate success. Got HTTP {response.StatusCode}");
+                    logger.LogError($"Response code did not indicate success.");
                 }
 
                 return new HttpResponse(response.IsSuccessStatusCode, (int)response.StatusCode, responseContent);
