@@ -57,7 +57,16 @@ namespace UntisExportService.Core.Upload
             var endpointSettings = settingsService.Settings.Endpoint;
 
             var response = await httpService.PostJsonAsync(endpointSettings.InfotextsUrl, endpointSettings.ApiKey, json).ConfigureAwait(false);
-            logger.LogDebug($"Successfully published infotexts to ICC.");
+            await HandleResponseAsync(response).ConfigureAwait(false);
+
+            if (response.IsSuccess)
+            {
+                logger.LogDebug($"Successfully published infotexts to ICC.");
+            }
+            else
+            {
+                logger.LogError($"Publishing infotexts to ICC failed. See log for further information.");
+            }
         }
 
         /// <summary>
@@ -78,7 +87,16 @@ namespace UntisExportService.Core.Upload
             var endpointSettings = settingsService.Settings.Endpoint;
 
             var response = await httpService.PostJsonAsync(endpointSettings.SubstitutionsUrl, endpointSettings.ApiKey, json).ConfigureAwait(false);
-            logger.LogDebug($"Successfully published substitutions to ICC.");
+            await HandleResponseAsync(response).ConfigureAwait(false);
+
+            if (response.IsSuccess)
+            {
+                logger.LogDebug($"Successfully published substitutions to ICC.");
+            }
+            else
+            {
+                logger.LogError($"Publishing substitutions to ICC failed. See log for further information.");
+            }
         }
 
         private async Task HandleResponseAsync(HttpResponse response)
@@ -89,7 +107,7 @@ namespace UntisExportService.Core.Upload
             {
                 var filename = "response-" + DateTime.Now.Ticks + ".json";
                 var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                var file = Path.Combine(path, "responses", filename);
+                var file = Path.Combine(path, filename);
 
                 using (var writer = new StreamWriter(file))
                 {
