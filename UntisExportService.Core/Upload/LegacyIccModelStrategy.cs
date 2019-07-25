@@ -40,9 +40,7 @@ namespace UntisExportService.Core.Upload
                         ReplacementRoom = x.ReplacementRoom,
                         Grades = x.Grade.ToArray(),
                         ReplacementGrades = x.ReplacementGrades.ToArray(),
-                        LastChange = DateTime.Now,
-                        ReplacementType = x.Type,
-                        Type = 0
+                        Type = x.Type
                     };
 
                     var description = x.Remark;

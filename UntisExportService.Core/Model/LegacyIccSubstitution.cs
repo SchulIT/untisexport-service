@@ -45,12 +45,6 @@ namespace UntisExportService.Core.Model
         public string Description { get; set; }
 
         [JsonProperty("Type")]
-        public int Type { get; set; }
-
-        [JsonProperty("ReplacementType")]
-        public string ReplacementType { get; set; }
-
-        [JsonProperty("LastChange")]
-        public DateTime LastChange { get; set; }
+        public string Type { get; set; }
     }
 }
