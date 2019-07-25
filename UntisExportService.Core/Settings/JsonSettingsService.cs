@@ -87,6 +87,12 @@ namespace UntisExportService.Core.Settings
                     Settings = settings;
                 }
 
+                // Write settings back to create possibly missing new setting items
+                using (var writer = new StreamWriter(path))
+                {
+                    writer.Write(JsonConvert.SerializeObject(Settings, Formatting.Indented));
+                }
+
                 logger.LogDebug("Settings read successfully.");
             }
             catch (Exception e)
