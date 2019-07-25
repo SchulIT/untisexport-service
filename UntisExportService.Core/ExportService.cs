@@ -134,7 +134,17 @@ namespace UntisExportService.Core
 
                 var deleteIdx = new List<int>();
 
-                for (int i = 0; i < substitutions.Count; i++)
+                /**
+                 * Important: we need the indices in descending order
+                 * because removing an item at index N will cause an
+                 * re-indexing of all items behind index N and thus 
+                 * delete indices will be wrong!
+                 * 
+                 * Idea: instead of sorting the indices in descending order,
+                 * we create the list of indices in descending order by interating
+                 * over the substitution list from the back to the beginning.
+                 */
+                for (int i = substitutions.Count - 1; i >= 0; i--)
                 {
                     if (substitutions[i].Id == ExamsId)
                     {
