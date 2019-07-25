@@ -14,7 +14,7 @@ namespace UntisExportService.Core.Settings
 
         string DateTimeFormat { get; }
 
-        List<string> EmptyValues { get; }
+        string[] EmptyValues { get; }
 
         bool InlcudeAbsentValues { get; }
 

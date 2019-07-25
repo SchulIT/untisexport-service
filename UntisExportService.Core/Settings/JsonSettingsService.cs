@@ -28,11 +28,11 @@ namespace UntisExportService.Core.Settings
         {
             this.logger = logger;
 
+            LoadSettings(true);
+
             this.watcher = watcher;
             this.watcher.Changed += OnSettingsFileChanged;
             this.watcher.Path = Path.GetDirectoryName(GetPath());
-
-            LoadSettings();
         }
 
         /// <summary>
@@ -44,14 +44,15 @@ namespace UntisExportService.Core.Settings
         {
             logger.LogDebug("settings.json changed");
 
-            LoadSettings();
+            LoadSettings(false);
             OnChanged(new SettingsChangedEventArgs());
         }
 
         /// <summary>
         /// Loads the settings from the file provided by GetPath()
         /// </summary>
-        protected virtual void LoadSettings()
+        /// <param name="isInitial">Specifies whether this is an initial load or an load during runtime.</param>
+        protected virtual void LoadSettings(bool isInitial)
         {
             var path = GetPath();
 
@@ -87,10 +88,13 @@ namespace UntisExportService.Core.Settings
                     Settings = settings;
                 }
 
-                // Write settings back to create possibly missing new setting items
-                using (var writer = new StreamWriter(path))
+                if (isInitial)
                 {
-                    writer.Write(JsonConvert.SerializeObject(Settings, Formatting.Indented));
+                    // Write settings back to create possibly missing new setting items
+                    using (var writer = new StreamWriter(path))
+                    {
+                        writer.Write(JsonConvert.SerializeObject(Settings, Formatting.Indented));
+                    }
                 }
 
                 logger.LogDebug("Settings read successfully.");

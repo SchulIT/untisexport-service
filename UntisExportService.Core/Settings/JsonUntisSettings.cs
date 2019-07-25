@@ -19,7 +19,7 @@ namespace UntisExportService.Core.Settings
         public string DateTimeFormat { get; set; } = "d.M.yyyy";
 
         [JsonProperty("empty_values")]
-        public List<string> EmptyValues { get; } = new List<string> { "---", "???" };
+        public string[] EmptyValues { get; set; } = new string[] { "---", "???" };
 
         [JsonProperty("include_absentvalues")]
         public bool InlcudeAbsentValues { get; set; } = false;
