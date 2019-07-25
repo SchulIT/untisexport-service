@@ -32,10 +32,10 @@ namespace UntisExportService.Core.Model
         [JsonProperty("ReplacementRoom")]
         public string ReplacementRoom { get; set; }
 
-        [JsonProperty("Grades")]
+        [JsonProperty("Classes")]
         public string[] Grades { get; set; }
 
-        [JsonProperty("ReplacementGrades")]
+        [JsonProperty("ReplacementClasses")]
         public string[] ReplacementGrades { get; set; }
 
         [JsonProperty("AbsenceReason")]
