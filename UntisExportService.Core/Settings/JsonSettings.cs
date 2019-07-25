@@ -18,6 +18,9 @@ namespace UntisExportService.Core.Settings
 
         [JsonProperty("untis")]
         public IUntisSettings Untis { get; } = new JsonUntisSettings();
+
+        [JsonProperty("encoding")]
+        public string Encoding { get; set; } = "iso-8859-1";
     }
 
     public class JsonEndpointSettings : IEndpointSettings

@@ -4,6 +4,7 @@ using SchulIT.UntisExport.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using UntisExportService.Core.FileSystem;
 using UntisExportService.Core.Settings;
@@ -90,7 +91,7 @@ namespace UntisExportService.Core
 
                 foreach (var file in files)
                 {
-                    using (var streamReader = new StreamReader(file))
+                    using (var streamReader = new StreamReader(file, Encoding.GetEncoding(settingsService.Settings.Encoding)))
                     {
                         var html = await streamReader.ReadToEndAsync();
                         var result = await untisExporter.ParseHtmlAsync(settings, html);

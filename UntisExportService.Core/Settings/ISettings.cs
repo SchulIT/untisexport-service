@@ -10,6 +10,8 @@
 
         string HtmlPath { get; }
 
+        string Encoding { get; }
+
         bool IsServiceEnabled { get; }
     }
 }
