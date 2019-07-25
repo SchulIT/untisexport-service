@@ -3,7 +3,7 @@ using System;
 
 namespace UntisExportService.Core.Model
 {
-    public class IccInfotext
+    public class IccInfotext : IInfotext
     {
         [JsonProperty("date")]
         public DateTime Date { get; set; }
