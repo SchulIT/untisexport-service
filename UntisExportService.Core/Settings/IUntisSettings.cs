@@ -8,8 +8,6 @@ namespace UntisExportService.Core.Settings
 
         int SyncThresholdInSeconds { get; }
 
-        bool RemoveExams { get; }
-
         bool FixBrokenPTags { get; }
 
         string DateTimeFormat { get; }
@@ -21,5 +19,7 @@ namespace UntisExportService.Core.Settings
         IUntisColumnSettings ColumnSettings { get; } 
 
         Dictionary<string, string> TypeReplacements { get; }
+
+        string[] RemoveSubstitutionsWithTypes { get; }
     }
 }

@@ -8,9 +8,6 @@ namespace UntisExportService.Core.Settings
         [JsonProperty("threshold")]
         public int SyncThresholdInSeconds { get; set; } = 2;
 
-        [JsonProperty("remove_exams")]
-        public bool RemoveExams { get; set; } = false;
-
         [JsonProperty("fix_ptags")]
         public bool FixBrokenPTags { get; set; } = true;
 
@@ -28,5 +25,8 @@ namespace UntisExportService.Core.Settings
 
         [JsonProperty("type_replacements")]
         public Dictionary<string, string> TypeReplacements { get; set; }
+
+        [JsonProperty("remove_types")]
+        public string[] RemoveSubstitutionsWithTypes { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using SchulIT.UntisExport.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UntisExportService.Core.FileSystem;
@@ -16,8 +17,6 @@ namespace UntisExportService.Core
     {
         private bool isExportRunning = false;
         private readonly object exportLock = new object();
-
-        private const int ExamsId = 0;
 
         private readonly ISettingsService settingsService;
         private readonly IFileSystemWatcher watcher;
@@ -101,9 +100,9 @@ namespace UntisExportService.Core
                     }
                 }
 
+                await RemoveSubsitutionsWithRemovableTypeAsync(substitutions).ConfigureAwait(false);
                 await ReplaceSubstitutionTypes(substitutions).ConfigureAwait(false);
-                await RemoveSubstitutionsIfNecessaryAsync(substitutions).ConfigureAwait(false);
-
+                
                 // Pack everything and and upload
                 await uploadService.UploadSubstitutionsAsync(substitutions).ConfigureAwait(false);
                 await uploadService.UploadInfotextsAsync(infotexts).ConfigureAwait(false);
@@ -143,38 +142,21 @@ namespace UntisExportService.Core
             });
         }
 
-        private Task RemoveSubstitutionsIfNecessaryAsync(List<Substitution> substitutions)
+        private Task RemoveSubsitutionsWithRemovableTypeAsync(List<Substitution> substitutions)
         {
-            if(settingsService.Settings.Untis.RemoveExams == false)
+            logger.LogDebug("Remove substitutions with removable types.");
+
+            if(settingsService.Settings.Untis.RemoveSubstitutionsWithTypes == null || settingsService.Settings.Untis.RemoveSubstitutionsWithTypes.Length == 0)
             {
-                logger.LogDebug("No need to remove exams.");
+                logger.LogDebug("No removable types specified. Skipping.");
                 return Task.CompletedTask;
             }
 
             return Task.Run(() =>
             {
-                logger.LogDebug("Removing exams.");
+                var removableTypes = settingsService.Settings.Untis.RemoveSubstitutionsWithTypes;
 
-                var deleteIdx = new List<int>();
-
-                /**
-                 * Important: we need the indices in descending order
-                 * because removing an item at index N will cause an
-                 * re-indexing of all items behind index N and thus 
-                 * delete indices will be wrong!
-                 * 
-                 * Idea: instead of sorting the indices in descending order,
-                 * we create the list of indices in descending order by interating
-                 * over the substitution list from the back to the beginning.
-                 */
-                for (int i = substitutions.Count - 1; i >= 0; i--)
-                {
-                    if (substitutions[i].Id == ExamsId)
-                    {
-                        deleteIdx.Add(i);
-                    }
-                }
-
+                var deleteIdx = substitutions.Select((x, i) => new { Substitution = x, Index = i }).Where(x => removableTypes.Contains(x.Substitution.Type)).Select(x => x.Index).OrderByDescending(x => x).ToList();
                 foreach (var idx in deleteIdx)
                 {
                     substitutions.RemoveAt(idx);
