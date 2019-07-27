@@ -101,7 +101,7 @@ namespace UntisExportService.Core
                 }
 
                 await RemoveSubsitutionsWithRemovableTypeAsync(substitutions).ConfigureAwait(false);
-                await ReplaceSubstitutionTypes(substitutions).ConfigureAwait(false);
+                await ReplaceSubstitutionTypesAsync(substitutions).ConfigureAwait(false);
                 
                 // Pack everything and and upload
                 await uploadService.UploadSubstitutionsAsync(substitutions).ConfigureAwait(false);
@@ -120,7 +120,7 @@ namespace UntisExportService.Core
             }
         }
 
-        private Task ReplaceSubstitutionTypes(List<Substitution> substitutions)
+        private Task ReplaceSubstitutionTypesAsync(List<Substitution> substitutions)
         {
             logger.LogDebug("Replace substitution types.");
 
