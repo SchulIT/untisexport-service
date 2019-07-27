@@ -21,9 +21,9 @@ namespace UntisExportService.Core.Settings
         public IUntisColumnSettings ColumnSettings { get; } = new JsonUntisColumnSettings();
 
         [JsonProperty("type_replacements")]
-        public Dictionary<string, string> TypeReplacements { get; set; }
+        public Dictionary<string, string> TypeReplacements { get; set; } = new Dictionary<string, string>();
 
         [JsonProperty("remove_types")]
-        public string[] RemoveSubstitutionsWithTypes { get; set; }
+        public string[] RemoveSubstitutionsWithTypes { get; set; } = new string[1] { "Klausur" };
     }
 }
