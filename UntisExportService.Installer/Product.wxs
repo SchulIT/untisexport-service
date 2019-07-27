@@ -89,5 +89,15 @@
     <WixVariable Id="WixUILicenseRtf" Value="Eula.rtf" />
 
     <SetDirectory Id="APPLICATIONFOLDER" Value="[ProgramFiles64Folder][ApplicationFolderName]">APPLICATIONFOLDER=""</SetDirectory>
+
+    <CustomAction Id="CreateSettings"
+                  Return="check"
+                  FileKey="UntisExportService.Service.exe"
+                  Execute="commit"
+                  ExeCommand="create-settings" />
+
+    <InstallExecuteSequence>
+      <Custom Action="CreateSettings" Before="InstallFinalize">NOT REMOVE</Custom>
+    </InstallExecuteSequence>
 	</Product>
 </Wix>

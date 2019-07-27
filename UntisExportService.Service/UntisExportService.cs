@@ -20,7 +20,7 @@ namespace UntisExportService.Service
             InitializeComponent();
         }
 
-        protected override void OnStart(string[] args)
+        internal static IContainer BuildContainer()
         {
             var builder = new ContainerBuilder();
 
@@ -36,6 +36,13 @@ namespace UntisExportService.Service
             builder.RegisterType<UntisExporter>().As<IUntisExporter>().SingleInstance();
 
             var container = builder.Build();
+
+            return container;
+        }
+
+        protected override void OnStart(string[] args)
+        {
+            var container = BuildContainer();
 
             service = container.Resolve<IExportService>();
 

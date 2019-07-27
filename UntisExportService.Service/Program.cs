@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Autofac;
+using System;
 using System.ServiceProcess;
+using UntisExportService.Core.Settings;
 
 namespace UntisExportService.Service
 {
@@ -9,8 +11,16 @@ namespace UntisExportService.Service
         {
             if (Environment.UserInteractive)
             {
-                var service = new UntisExportService();
-                service.TestStartupAndStop(args);
+                if (args.Length != 0 && args[0] == "create-settings")
+                {
+                    var container = UntisExportService.BuildContainer();
+                    container.Resolve<ISettingsService>();
+                }
+                else
+                {
+                    var service = new UntisExportService();
+                    service.TestStartupAndStop(args);
+                }
             }
             else
             {
