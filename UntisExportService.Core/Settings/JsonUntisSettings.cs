@@ -5,9 +5,6 @@ namespace UntisExportService.Core.Settings
 {
     public class JsonUntisSettings : IUntisSettings
     {
-        [JsonProperty("threshold")]
-        public int SyncThresholdInSeconds { get; set; } = 2;
-
         [JsonProperty("fix_ptags")]
         public bool FixBrokenPTags { get; set; } = true;
 

@@ -13,18 +13,24 @@ namespace UntisExportService.Core.Settings
         [JsonProperty("html_path")]
         public string HtmlPath { get; set; }
 
+        [JsonProperty("threshold")]
+        public int SyncThresholdInSeconds { get; set; } = 2;
+
+        [JsonProperty("encoding")]
+        public string Encoding { get; set; } = "iso-8859-1";
+
         [JsonProperty("endpoint")]
         public IEndpointSettings Endpoint { get; } = new JsonEndpointSettings();
 
         [JsonProperty("untis")]
         public IUntisSettings Untis { get; } = new JsonUntisSettings();
-
-        [JsonProperty("encoding")]
-        public string Encoding { get; set; } = "iso-8859-1";
     }
 
     public class JsonEndpointSettings : IEndpointSettings
     {
+        [JsonProperty("legacy")]
+        public bool UseLegacyStrategy { get; set; } = false;
+
         [JsonProperty("substitutions")]
         public string SubstitutionsUrl { get; set; }
 
@@ -33,10 +39,6 @@ namespace UntisExportService.Core.Settings
 
         [JsonProperty("api_key")]
         public string ApiKey { get; set; }
-
-        [JsonProperty("new_version")]
-        public bool UseNewVersion { get; set; } = true;
-        
     }
 
 }

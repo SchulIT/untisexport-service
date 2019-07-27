@@ -69,10 +69,10 @@ namespace UntisExportService.Core
                     isExportRunning = true;
                 }
 
-                if (settingsService.Settings.Untis.SyncThresholdInSeconds > 0)
+                if (settingsService.Settings.SyncThresholdInSeconds > 0)
                 {
-                    logger.LogDebug($"Waiting {settingsService.Settings.Untis.SyncThresholdInSeconds} seconds for Untis to create all files.");
-                    await Task.Delay(TimeSpan.FromSeconds(settingsService.Settings.Untis.SyncThresholdInSeconds));
+                    logger.LogDebug($"Waiting {settingsService.Settings.SyncThresholdInSeconds} seconds for Untis to create all files.");
+                    await Task.Delay(TimeSpan.FromSeconds(settingsService.Settings.SyncThresholdInSeconds));
                 }
 
                 // Read all files in directory

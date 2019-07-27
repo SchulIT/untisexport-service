@@ -4,14 +4,16 @@
     {
         bool IsDebugModeEnabled { get; }
 
-        IEndpointSettings Endpoint { get; }
-
-        IUntisSettings Untis { get; }
+        bool IsServiceEnabled { get; }
 
         string HtmlPath { get; }
 
+        int SyncThresholdInSeconds { get; }
+
         string Encoding { get; }
 
-        bool IsServiceEnabled { get; }
+        IEndpointSettings Endpoint { get; }
+
+        IUntisSettings Untis { get; }
     }
 }

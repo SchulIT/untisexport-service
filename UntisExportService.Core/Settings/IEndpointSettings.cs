@@ -2,7 +2,7 @@
 {
     public interface IEndpointSettings
     {
-        bool UseNewVersion { get; set; }
+        bool UseLegacyStrategy { get; set; }
 
         string SubstitutionsUrl { get; set; }
 

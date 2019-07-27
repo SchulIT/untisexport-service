@@ -1,5 +1,4 @@
 ﻿using SchulIT.UntisExport.Model;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UntisExportService.Core.Model;
@@ -73,7 +72,7 @@ namespace UntisExportService.Core.Upload
 
         public bool IsSupported(ISettings settings)
         {
-            return settings.Endpoint.UseNewVersion == false;
+            return settings.Endpoint.UseLegacyStrategy == true;
         }
     }
 }

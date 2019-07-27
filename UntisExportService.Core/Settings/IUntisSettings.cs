@@ -5,16 +5,13 @@ namespace UntisExportService.Core.Settings
 {
     public interface IUntisSettings
     {
-
-        int SyncThresholdInSeconds { get; }
-
         bool FixBrokenPTags { get; }
 
         string DateTimeFormat { get; }
 
-        string[] EmptyValues { get; }
-
         bool InlcudeAbsentValues { get; }
+
+        string[] EmptyValues { get; }
 
         IUntisColumnSettings ColumnSettings { get; } 
 
