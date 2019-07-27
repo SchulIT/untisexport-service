@@ -42,6 +42,7 @@
                 <File Id="UntisExportService.Service.exe" Name="UntisExportService.Service.exe" Source="$(var.UntisExportService.Service.TargetDir)" KeyPath="yes" />
                 <File Id="UntisExportService.Service.exe.config" Name="UntisExportService.Service.exe.config" Source="$(var.UntisExportService.Service.TargetDir)" />
                 <File Id="nlog.config.service" Name="nlog.config" Source="$(var.UntisExportService.Service.TargetDir)" />
+                <File Id="LICENSES.txt" Name="LICENSES.txt" Source="$(var.UntisExportService.Core.TargetDir)" />
 
                 <ServiceInstall Id="ServiceInstaller" Type="ownProcess" Name="UntisExportService" DisplayName="UntisExportService" Description="Starts UntisExportService" Start="auto" Account="[SERVICEACCOUNT]" Password="[SERVICEPASSWORD]" ErrorControl="normal"/>
                 <ServiceControl Id="StartService" Stop="both" Remove="uninstall" Name="UntisExportService" Wait="yes" />
