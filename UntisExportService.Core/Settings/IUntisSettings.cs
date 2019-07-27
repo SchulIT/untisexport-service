@@ -19,5 +19,7 @@ namespace UntisExportService.Core.Settings
         bool InlcudeAbsentValues { get; }
 
         IUntisColumnSettings ColumnSettings { get; } 
+
+        Dictionary<string, string> TypeReplacements { get; }
     }
 }

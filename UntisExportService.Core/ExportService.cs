@@ -101,6 +101,7 @@ namespace UntisExportService.Core
                     }
                 }
 
+                await ReplaceSubstitutionTypes(substitutions).ConfigureAwait(false);
                 await RemoveSubstitutionsIfNecessaryAsync(substitutions).ConfigureAwait(false);
 
                 // Pack everything and and upload
@@ -118,6 +119,28 @@ namespace UntisExportService.Core
             {
                 logger.LogError(e, "Something went terribly wrong.");
             }
+        }
+
+        private Task ReplaceSubstitutionTypes(List<Substitution> substitutions)
+        {
+            logger.LogDebug("Replace substitution types.");
+
+            if (settingsService.Settings.Untis.TypeReplacements == null || settingsService.Settings.Untis.TypeReplacements.Count == 0)
+            {
+                logger.LogDebug($"No type replacements given. Skipping.");
+                return Task.CompletedTask;
+            }
+
+            return Task.Run(() =>
+            {
+                foreach (var substitution in substitutions)
+                {
+                    foreach (var kv in settingsService.Settings.Untis.TypeReplacements)
+                    {
+                        substitution.Type = substitution.Type.Replace(kv.Key, kv.Value);
+                    }
+                }
+            });
         }
 
         private Task RemoveSubstitutionsIfNecessaryAsync(List<Substitution> substitutions)

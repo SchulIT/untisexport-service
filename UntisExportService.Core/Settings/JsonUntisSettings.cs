@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using SchulIT.UntisExport;
 using System.Collections.Generic;
 
 namespace UntisExportService.Core.Settings
@@ -26,5 +25,8 @@ namespace UntisExportService.Core.Settings
 
         [JsonProperty("columns")]
         public IUntisColumnSettings ColumnSettings { get; } = new JsonUntisColumnSettings();
+
+        [JsonProperty("type_replacements")]
+        public Dictionary<string, string> TypeReplacements { get; set; }
     }
 }
