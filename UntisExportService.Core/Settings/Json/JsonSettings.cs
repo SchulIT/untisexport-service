@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
+using System.Linq;
 
-namespace UntisExportService.Core.Settings
+namespace UntisExportService.Core.Settings.Json
 {
     public class JsonSettings : ISettings
     {
@@ -24,6 +25,9 @@ namespace UntisExportService.Core.Settings
 
         [JsonProperty("untis")]
         public IUntisSettings Untis { get; } = new JsonUntisSettings();
+
+        [JsonProperty("study_groups_file")]
+        public string StudyGroupsJsonFile { get; set; }
     }
 
     public class JsonEndpointSettings : IEndpointSettings
@@ -36,6 +40,9 @@ namespace UntisExportService.Core.Settings
 
         [JsonProperty("infotexts")]
         public string InfotextsUrl { get; set; }
+
+        [JsonProperty("absences")]
+        public string AbsencesUrl { get; set; }
 
         [JsonProperty("api_key")]
         public string ApiKey { get; set; }

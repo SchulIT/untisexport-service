@@ -15,5 +15,7 @@
         IEndpointSettings Endpoint { get; }
 
         IUntisSettings Untis { get; }
+
+        string StudyGroupsJsonFile { get; }
     }
 }

@@ -13,17 +13,16 @@ namespace UntisExportService.Core.Upload
 {
     public class IccUploadService : IUploadService
     {
-        private readonly List<IModelStrategy> modelStrategies = new List<IModelStrategy>
-        {
-            new LegacyIccModelStrategy()
-        };
+        private readonly IEnumerable<IModelStrategy> modelStrategies;
 
         private readonly ISettingsService settingsService;
         private readonly IHttp httpService;
         private readonly ILogger<IccUploadService> logger;
 
-        public IccUploadService(ISettingsService settingsService, IHttp httpService, ILogger<IccUploadService> logger)
+        public IccUploadService(ISettingsService settingsService, IHttp httpService, IEnumerable<IModelStrategy> modelStrategies, ILogger<IccUploadService> logger)
         {
+            this.modelStrategies = modelStrategies;
+
             this.settingsService = settingsService;
             this.httpService = httpService;
             this.logger = logger;

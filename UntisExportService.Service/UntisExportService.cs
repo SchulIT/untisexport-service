@@ -7,6 +7,8 @@ using System.ServiceProcess;
 using UntisExportService.Core;
 using UntisExportService.Core.FileSystem;
 using UntisExportService.Core.Settings;
+using UntisExportService.Core.Settings.Json;
+using UntisExportService.Core.StudyGroups;
 using UntisExportService.Core.Upload;
 
 namespace UntisExportService.Service
@@ -24,6 +26,10 @@ namespace UntisExportService.Service
         {
             var builder = new ContainerBuilder();
 
+            builder.RegisterType<LegacyIccModelStrategy>().As<IModelStrategy>();
+            builder.RegisterType<IccModelStrategy>().As<IModelStrategy>();
+
+            builder.RegisterType<JsonFileStudyGroupResolver>().As<IStudyGroupResolver>().SingleInstance();
             builder.RegisterType<JsonSettingsService>().As<ISettingsService>().SingleInstance();
             builder.RegisterType<Http>().As<IHttp>().SingleInstance();
             builder.RegisterType<IccUploadService>().As<IUploadService>().SingleInstance();

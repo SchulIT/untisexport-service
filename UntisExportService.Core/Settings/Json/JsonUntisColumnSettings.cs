@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace UntisExportService.Core.Settings
+namespace UntisExportService.Core.Settings.Json
 {
     public class JsonUntisColumnSettings : IUntisColumnSettings
     {

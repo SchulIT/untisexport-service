@@ -39,11 +39,11 @@ namespace UntisExportService.Core.Model
         [JsonProperty("replacement_teachers")]
         public ICollection<string> ReplacementTeachers { get; set; }
 
-        [JsonProperty("grades")]
-        public ICollection<string> Grades { get; set; }
+        [JsonProperty("study_groups")]
+        public ICollection<string> StudyGroups { get; set; }
 
-        [JsonProperty("replacement_grades")]
-        public ICollection<string> ReplacementGrades { get; set; }
+        [JsonProperty("replacement_study_groups")]
+        public ICollection<string> ReplacementStudyGroups { get; set; }
 
         [JsonProperty("remark")]
         public string Remark { get; set; }

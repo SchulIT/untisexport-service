@@ -18,5 +18,6 @@ namespace UntisExportService.Core.Settings
         Dictionary<string, string> TypeReplacements { get; }
 
         string[] RemoveSubstitutionsWithTypes { get; }
+
     }
 }

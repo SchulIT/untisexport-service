@@ -1,7 +1,8 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Linq;
 
-namespace UntisExportService.Core.Settings
+namespace UntisExportService.Core.Settings.Json
 {
     public class JsonUntisSettings : IUntisSettings
     {

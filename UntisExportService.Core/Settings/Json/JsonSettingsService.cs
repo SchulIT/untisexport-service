@@ -4,7 +4,7 @@ using System;
 using System.IO;
 using UntisExportService.Core.FileSystem;
 
-namespace UntisExportService.Core.Settings
+namespace UntisExportService.Core.Settings.Json
 {
     public class JsonSettingsService : ISettingsService
     {
