@@ -9,5 +9,7 @@ namespace UntisExportService.Core.Upload
         Task UploadSubstitutionsAsync(IEnumerable<Substitution> substitutions);
 
         Task UploadInfotextsAsync(IEnumerable<Infotext> infotexts);
+
+        Task UploadAbsencesAsync(IEnumerable<Absence> absences);
     }
 }

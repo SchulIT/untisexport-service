@@ -98,6 +98,40 @@ namespace UntisExportService.Core.Upload
             }
         }
 
+        public async Task UploadAbsencesAsync(IEnumerable<Absence> absences)
+        {
+            var strategy = GetModelStrategy();
+
+            if(strategy is LegacyIccModelStrategy)
+            {
+                logger.LogDebug($"Do not publish absences as they are not supported by legacy ICC.");
+                return;
+            }
+
+            logger.LogDebug($"Publish {absences.Count()} absences(s) to ICC.");
+            var json = await Task.Run(() =>
+            {
+                    
+                logger.LogDebug($"Converting absences using {strategy.GetType().ToString()}");
+                return JsonConvert.SerializeObject(strategy.GetAbsences(absences));
+            }).ConfigureAwait(false);
+            
+
+            var endpointSettings = settingsService.Settings.Endpoint;
+
+            var response = await httpService.PostJsonAsync(endpointSettings.AbsencesUrl, endpointSettings.ApiKey, json).ConfigureAwait(false);
+            await HandleResponseAsync(response).ConfigureAwait(false);
+
+            if (response.IsSuccess)
+            {
+                logger.LogDebug($"Successfully published absences to ICC.");
+            }
+            else
+            {
+                logger.LogError($"Publishing absences to ICC failed. See log for further information.");
+            }
+        }
+
         private async Task HandleResponseAsync(HttpResponse response)
         {
             logger.LogDebug($"Got response with HTTP {response.StatusCode}");

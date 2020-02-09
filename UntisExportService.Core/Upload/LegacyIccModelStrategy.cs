@@ -1,4 +1,5 @@
 ﻿using SchulIT.UntisExport.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UntisExportService.Core.Model;
@@ -13,6 +14,12 @@ namespace UntisExportService.Core.Upload
     /// </summary>
     public class LegacyIccModelStrategy : IModelStrategy
     {
+
+        public IEnumerable<IAbsence> GetAbsences(IEnumerable<Absence> absences)
+        {
+            throw new NotImplementedException();
+        }
+
         public IEnumerable<IInfotext> GetInfotexts(IEnumerable<Infotext> infotexts)
         {
             return infotexts.Select(x => new IccInfotext { Date = x.Date, Content = x.Text }).Cast<IInfotext>();

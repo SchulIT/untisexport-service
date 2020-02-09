@@ -1,4 +1,5 @@
 ﻿using SchulIT.UntisExport.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UntisExportService.Core.Model;
@@ -60,6 +61,25 @@ namespace UntisExportService.Core.Upload
         public bool IsSupported(ISettings settings)
         {
             return settings.Endpoint.UseLegacyStrategy == false;
+        }
+
+        public IEnumerable<IAbsence> GetAbsences(IEnumerable<Absence> absences)
+        {
+            return absences.Select(x => new IccAbsence { Date = x.Date, Objective = x.Objective, LessonEnd = x.LessonEnd, LessonStart = x.LessonStart, Type = ConvertAbsenceType(x.Type) }).Cast<IAbsence>();
+        }
+
+        private IccAbsence.IccAbsenceType ConvertAbsenceType(Absence.ObjectiveType type)
+        {
+            switch (type)
+            {
+                case Absence.ObjectiveType.StudyGroup:
+                    return IccAbsence.IccAbsenceType.StudyGroup;
+
+                case Absence.ObjectiveType.Teacher:
+                    return IccAbsence.IccAbsenceType.Teacher;
+            }
+
+            throw new ArgumentException($"Invalid ObjectiveType { type } provided.");
         }
     }
 }

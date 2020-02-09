@@ -8,6 +8,8 @@
 
         string InfotextsUrl { get; set; }
 
+        string AbsencesUrl { get; set; }
+
         string ApiKey { get; set; }
     }
 }
