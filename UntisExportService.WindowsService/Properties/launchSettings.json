@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "UntisExportService.WindowsService": {
+      "commandName": "Project",
+      "commandLineArgs": "create-settings",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

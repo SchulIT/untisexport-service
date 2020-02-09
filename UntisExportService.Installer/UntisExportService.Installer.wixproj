@@ -10,13 +10,13 @@
     <OutputType>Package</OutputType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
-    <OutputPath>bin\$(Configuration)\</OutputPath>
-    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
-    <DefineConstants>Debug</DefineConstants>
+    <DefineConstants>Debug;</DefineConstants>
+    <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
-    <OutputPath>bin\$(Configuration)\</OutputPath>
-    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup>
     <InstallerPlatform>x64</InstallerPlatform>
@@ -32,6 +32,14 @@
     <Content Include="EULA.rtf" />
     <Content Include="icon.ico" />
   </ItemGroup>
+  <PropertyGroup>
+    <WixServiceParams>
+      <Parameter Name="InstallFolder" Value="SERVICE_INSTALLLOCATION" />
+      <Parameter Name="DisplayName" Value="UntisExportService" />
+      <Parameter Name="Name" Value="UntisExportService" />
+      <Parameter Name="Description" Value="Exports substitutions from Untis." />
+    </WixServiceParams>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\UntisExportService.Console\UntisExportService.Console.csproj">
       <Name>UntisExportService.Console</Name>
@@ -39,32 +47,37 @@
       <Private>True</Private>
       <DoNotHarvest>True</DoNotHarvest>
       <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
-      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
-      <TargetFrameworkIdentifier>netcoreapp2.2</TargetFrameworkIdentifier>
+      <RefTargetDir>CONSOLE_INSTALLLOCATION</RefTargetDir>
+      <SourceComponentGroup>ConsoleSourceComponentGroup</SourceComponentGroup>
+      <TargetFrameworkIdentifier>netcoreapp3.1</TargetFrameworkIdentifier>
       <Runtime>win-x64</Runtime>
       <IsDotnetSDKProject>True</IsDotnetSDKProject>
+      <HasService>False</HasService>
+      <SourceDir>ConsoleSourceDir</SourceDir>
     </ProjectReference>
-    <ProjectReference Include="..\UntisExportService.Core\UntisExportService.Core.csproj">
-      <Name>UntisExportService.Core</Name>
-      <Project>{6db65d9a-3fb7-4854-9959-bbc4bcd592a8}</Project>
+    <ProjectReference Include="..\UntisExportService.WindowsService\UntisExportService.WindowsService.csproj">
+      <Name>UntisExportService.WindowsService</Name>
+      <Project>{4f68a87b-b1c1-49ad-b161-3e4e493401fa}</Project>
       <Private>True</Private>
       <DoNotHarvest>True</DoNotHarvest>
       <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
-      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
-    </ProjectReference>
-    <ProjectReference Include="..\UntisExportService.Service\UntisExportService.Service.csproj">
-      <Name>UntisExportService.Service</Name>
-      <Project>{08d16d89-fefe-44a9-a574-380400edb961}</Project>
-      <Private>True</Private>
-      <DoNotHarvest>True</DoNotHarvest>
-      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
-      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+      <RefTargetDir>SERVICE_INSTALLLOCATION</RefTargetDir>
+      <SourceComponentGroup>ServiceSourceComponentGroup</SourceComponentGroup>
+      <TargetFrameworkIdentifier>netcoreapp3.1</TargetFrameworkIdentifier>
+      <Runtime>win-x64</Runtime>
+      <IsDotnetSDKProject>True</IsDotnetSDKProject>
+      <HasService>True</HasService>
+      <SourceDir>ServiceSourceDir</SourceDir>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <WixExtension Include="WixUIExtension">
       <HintPath>$(WixExtDir)\WixUIExtension.dll</HintPath>
       <Name>WixUIExtension</Name>
+    </WixExtension>
+    <WixExtension Include="WixUtilExtension">
+      <HintPath>$(WixExtDir)\WixUtilExtension.dll</HintPath>
+      <Name>WixUtilExtension</Name>
     </WixExtension>
   </ItemGroup>
   <Import Project="$(WixTargetsPath)" Condition=" '$(WixTargetsPath)' != '' " />
@@ -73,25 +86,16 @@
     <Error Text="The WiX Toolset v3.11 (or newer) build tools must be installed to build this project. To download the WiX Toolset, see http://wixtoolset.org/releases/" />
   </Target>
   <Target Name="BeforeBuild">
-    <Exec WorkingDirectory="%(ProjectReference.RootDir)%(ProjectReference.Directory)" Command="dotnet publish -c $(Configuration) -f %(ProjectReference.TargetFrameworkIdentifier) -r %(ProjectReference.Runtime)" Condition="'%(ProjectReference.IsDotnetSDKProject)' == 'True'" />
+    <Exec WorkingDirectory="%(ProjectReference.RootDir)%(ProjectReference.Directory)" Command="dotnet publish -c $(Configuration) -r %(ProjectReference.Runtime) /p:PublishTrimmed=true" Condition="'%(ProjectReference.IsDotnetSDKProject)' == 'True'" />
     <ItemGroup>
       <LinkerBindInputPaths Include="%(ProjectReference.RootDir)%(ProjectReference.Directory)bin\$(Configuration)\%(ProjectReference.TargetFrameworkIdentifier)\%(ProjectReference.Runtime)\publish" />
     </ItemGroup>
-    <HeatDirectory
-          DirectoryRefId="INSTALLFOLDER" 
-          OutputFile="obj\$(Configuration)\%(ProjectReference.Name).wxs" 
-          Directory="%(ProjectReference.RootDir)%(ProjectReference.Directory)bin\$(Configuration)\%(ProjectReference.TargetFrameworkIdentifier)\%(ProjectReference.Runtime)\publish" 
-          ComponentGroupName="SourceComponentGroup"
-          ToolPath="$(WixToolPath)" 
-          AutogenerateGuids="True"
-          GenerateGuidsNow="True"
-          SuppressCom="True"
-          SuppressRegistry="True"
-          SuppressFragments="true"
-          SuppressRootDirectory="true"
-          Condition="'%(ProjectReference.IsDotnetSDKProject)' == 'True'"/>
+    <HeatDirectory DirectoryRefId="%(ProjectReference.RefTargetDir)" OutputFile="obj\$(Platform)\$(Configuration)\%(ProjectReference.Name)_%(ProjectReference.SourceComponentGroup).wxs" Directory="%(ProjectReference.RootDir)%(ProjectReference.Directory)bin\$(Configuration)\%(ProjectReference.TargetFrameworkIdentifier)\%(ProjectReference.Runtime)\publish" ComponentGroupName="%(ProjectReference.SourceComponentGroup)" ToolPath="$(WixToolPath)" PreprocessorVariable="var.%(ProjectReference.Name).TargetDir" AutogenerateGuids="True" GenerateGuidsNow="True" SuppressCom="True" SuppressRegistry="True" SuppressFragments="True" SuppressRootDirectory="True" Condition="'%(ProjectReference.IsDotnetSDKProject)' == 'True'" />
+    <XslTransformation XslInputPath="TransformFileIds.xsl" XmlInputPaths="obj\$(Platform)\$(Configuration)\%(ProjectReference.Name)_%(ProjectReference.SourceComponentGroup).wxs" OutputPaths="obj\$(Platform)\$(Configuration)\%(ProjectReference.Name)_%(ProjectReference.SourceComponentGroup)_Final.wxs" Condition="'%(ProjectReference.IsDotnetSDKProject)' == 'True'" />
+    <XslTransformation XslInputPath="WixService.xsl" XmlInputPaths="obj\$(Platform)\$(Configuration)\%(ProjectReference.Name)_%(ProjectReference.SourceComponentGroup)_Final.wxs" OutputPaths="obj\$(Platform)\$(Configuration)\%(ProjectReference.Name)_%(ProjectReference.SourceComponentGroup)_WithService.wxs" Parameters="$(WixServiceParams)" Condition="'%(ProjectReference.HasService)' == 'True'" />
     <ItemGroup>
-      <Compile Include="obj\$(Configuration)\%(ProjectReference.Name).wxs" Condition="'%(ProjectReference.IsDotnetSDKProject)' == 'True'" />
+      <Compile Include="obj\$(Platform)\$(Configuration)\%(ProjectReference.Name)_%(ProjectReference.SourceComponentGroup)_Final.wxs" Condition="'%(ProjectReference.IsDotnetSDKProject)' == 'True' AND '%(ProjectReference.HasService)' == 'False'" />
+      <Compile Include="obj\$(Platform)\$(Configuration)\%(ProjectReference.Name)_%(ProjectReference.SourceComponentGroup)_WithService.wxs" Condition="'%(ProjectReference.IsDotnetSDKProject)' == 'True' AND '%(ProjectReference.HasService)' == 'True'" />
     </ItemGroup>
   </Target>
   <!--

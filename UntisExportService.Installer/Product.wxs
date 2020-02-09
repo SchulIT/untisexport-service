@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <?define UpgradeGuid="B130A907-099C-403B-92A1-E68CE1664940" ?>
-  <?define Version="0.9.3"?>
+  <?define Version="0.9.4"?>
   
   <Product Id="*" Name="UntisExportService" Language="1033" Version="$(var.Version)" Manufacturer="SchulIT" UpgradeCode="$(var.UpgradeGuid)">
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" Platform="x64" />
@@ -16,40 +16,8 @@
       <Directory Id="ProgramFiles64Folder">
         <Directory Id="APPLICATIONFOLDER" Name="SchulIT">
           <Directory Id="INSTALLLOCATION" Name="UntisExportService">
-            <Directory Id="Service" Name="Service">
-              <Component Id="ServiceComponent" Guid="17B2D2A2-4250-4598-BD9D-F26D767DC459" Win64="yes">
-                <File Name="Autofac.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Name="HtmlAgilityPack.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Name="Microsoft.Extensions.Configuration.Abstractions.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Name="Microsoft.Extensions.Configuration.Binder.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Name="Microsoft.Extensions.Configuration.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Name="Microsoft.Extensions.DependencyInjection.Abstractions.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Name="Microsoft.Extensions.Logging.Abstractions.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Name="Microsoft.Extensions.Logging.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Name="Microsoft.Extensions.Options.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Name="Microsoft.Extensions.Primitives.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Name="Newtonsoft.Json.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Name="NLog.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Name="NLog.Extensions.Logging.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Name="SchulIT.UntisExport.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Name="System.Buffers.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Name="System.ComponentModel.Annotations.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Name="System.Memory.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Name="System.Numerics.Vectors.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Name="System.Runtime.CompilerServices.Unsafe.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Name="UntisExportService.Core.dll" Source="$(var.UntisExportService.Service.TargetDir)" />
-                
-                <File Id="UntisExportService.Service.exe" Name="UntisExportService.Service.exe" Source="$(var.UntisExportService.Service.TargetDir)" KeyPath="yes" />
-                <File Id="UntisExportService.Service.exe.config" Name="UntisExportService.Service.exe.config" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Id="nlog.config.service" Name="nlog.config" Source="$(var.UntisExportService.Service.TargetDir)" />
-                <File Id="LICENSES.txt" Name="LICENSES.txt" Source="$(var.UntisExportService.Core.TargetDir)" />
-
-                <ServiceInstall Id="ServiceInstaller" Type="ownProcess" Name="UntisExportService" DisplayName="UntisExportService" Description="Starts UntisExportService" Start="auto" Account="[SERVICEACCOUNT]" Password="[SERVICEPASSWORD]" ErrorControl="normal"/>
-                <ServiceControl Id="StartService" Stop="both" Remove="uninstall" Name="UntisExportService" Wait="yes" />
-              </Component>
-            </Directory>
-
-            <Directory Id="INSTALLFOLDER" Name="Console" />
+            <Directory Id="SERVICE_INSTALLLOCATION" Name="Service" />
+            <Directory Id="CONSOLE_INSTALLLOCATION" Name="Console" />
           </Directory>
         </Directory>
       </Directory>
@@ -67,11 +35,11 @@
     </Directory>
 
     <Feature Id="ServiceFeature" Title="!(loc.FeatureService)" Level="1">
-      <ComponentRef Id="ServiceComponent"/>
+      <ComponentGroupRef Id="ServiceSourceComponentGroup" />
     </Feature>
 
     <Feature Id="ConsoleFeature" Title="!(loc.FeatureConsole)" Level="1">
-      <ComponentGroupRef Id="SourceComponentGroup" />
+      <ComponentGroupRef Id="ConsoleSourceComponentGroup" />
 
       <Feature Id="ConsoleShortcutFeature" Title="!(loc.FeatureShortcut)" Level="1">
         <ComponentRef Id="ConsoleShortCutComponent"/>
@@ -90,15 +58,5 @@
     <WixVariable Id="WixUILicenseRtf" Value="Eula.rtf" />
 
     <SetDirectory Id="APPLICATIONFOLDER" Value="[ProgramFiles64Folder][ApplicationFolderName]">APPLICATIONFOLDER=""</SetDirectory>
-
-    <CustomAction Id="CreateSettings"
-                  Return="check"
-                  FileKey="UntisExportService.Service.exe"
-                  Execute="commit"
-                  ExeCommand="create-settings" />
-
-    <InstallExecuteSequence>
-      <Custom Action="CreateSettings" Before="InstallFinalize">NOT REMOVE</Custom>
-    </InstallExecuteSequence>
 	</Product>
 </Wix>
