@@ -49,7 +49,8 @@ Currently, configuration is only supported using the `settings.json` file which 
       "type": "Art",
       "remark": "Vertretungs-Text"
     }
-  }
+  },
+  "study_groups_file": "C:\\ProgramData\\SchulIT\\UntisExportService\\your-study-groups.json"
 }
 ```
 
@@ -70,6 +71,26 @@ Explanations:
   * all strings in `empty_values` are used to concider a value (e.g. the room) empty making its value `null`
   * if `include_absentvalues` is set to `false`, values inside brakets (such as `(05A)`) are concidered empty and thus making its value `null`. If set to `true`, the values are parsed without brakets
   * the `columns` settings hold the information to determine the corresponding columns
+* `your-study-groups.json` has has the following format: In the `study_groups` property you need to specify the grades as keys. Inside this dictionary, the keys are the subjects (which come from the Untis program) and its value is basically and study group (identifier):
+
+```json
+{
+  "study_groups": {
+    "05A": {
+      "M": "M-05A"
+    },
+    "08A": {
+      "IF": "IF-8ac"
+    },
+    "08B": {
+      "IF": "IF-8ac"
+    },
+    "08C": {
+      "IF": "IF-8ac"
+    }
+  }
+}
+```
 
 **Note:** You can change the configuration during runtime. The service watches for changes of the `settings.json` file and applies new settings immediately.
 
