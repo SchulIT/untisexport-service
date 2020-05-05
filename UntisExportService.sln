@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UntisExportService.Console"
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "UntisExportService.Installer", "UntisExportService.Installer\UntisExportService.Installer.wixproj", "{64AB98DE-043E-4E36-939A-8A66AE720DD2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UntisExportService.WindowsService", "UntisExportService.WindowsService\UntisExportService.WindowsService.csproj", "{4F68A87B-B1C1-49AD-B161-3E4E493401FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UntisExportService.WindowsService", "UntisExportService.WindowsService\UntisExportService.WindowsService.csproj", "{4F68A87B-B1C1-49AD-B161-3E4E493401FA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

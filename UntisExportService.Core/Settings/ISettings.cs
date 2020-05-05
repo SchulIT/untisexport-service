@@ -1,21 +1,19 @@
-﻿namespace UntisExportService.Core.Settings
+﻿using System.Collections.Generic;
+using UntisExportService.Core.Settings.Outputs;
+using UntisExportService.Core.Settings.Tuitions;
+
+namespace UntisExportService.Core.Settings
 {
     public interface ISettings
     {
         bool IsDebugModeEnabled { get; }
 
-        bool IsServiceEnabled { get; }
-
-        string HtmlPath { get; }
-
         int SyncThresholdInSeconds { get; }
 
-        string Encoding { get; }
+        IInputSettings Inputs { get; }
 
-        IEndpointSettings Endpoint { get; }
+        ITuitionResolver Tuition { get; }
 
-        IUntisSettings Untis { get; }
-
-        string StudyGroupsJsonFile { get; }
+        IList<IOutput> Outputs { get; }
     }
 }

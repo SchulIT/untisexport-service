@@ -3,7 +3,5 @@
     public interface ISettingsService
     {
         ISettings Settings { get; }
-
-        event SettingsChangedEventHandler Changed;
     }
 }

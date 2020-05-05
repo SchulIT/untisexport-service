@@ -30,8 +30,8 @@ namespace UntisExportService.WindowsService
                         .Where(x => x.IsAssignableTo<IModelStrategy>())
                         .AsImplementedInterfaces();
 
-                    builder.RegisterType<JsonFileStudyGroupResolver>().As<IStudyGroupResolver>().SingleInstance();
-                    builder.RegisterType<JsonSettingsService>().As<ISettingsService>().SingleInstance();
+                    builder.RegisterType<JsonFileStudyGroupResolver>().As<IStudyGroupResolveStrategy>().SingleInstance();
+                    builder.RegisterType<SettingsService>().As<ISettingsService>().SingleInstance();
                     builder.RegisterType<Http>().As<IHttp>().SingleInstance();
                     builder.RegisterType<IccUploadService>().As<IUploadService>().SingleInstance();
                     builder.RegisterType<ExportService>().As<IExportService>().SingleInstance();

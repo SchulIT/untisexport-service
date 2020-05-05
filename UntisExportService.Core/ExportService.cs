@@ -1,202 +1,229 @@
-﻿using Microsoft.Extensions.Logging;
-using SchulIT.UntisExport;
-using SchulIT.UntisExport.Model;
+﻿using Autofac.Features.Indexed;
+using Microsoft.Extensions.Logging;
+using Redbus.Events;
+using Redbus.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UntisExportService.Core.FileSystem;
+using UntisExportService.Core.Inputs;
+using UntisExportService.Core.Inputs.Exams;
+using UntisExportService.Core.Inputs.Rooms;
+using UntisExportService.Core.Inputs.Substitutions;
+using UntisExportService.Core.Inputs.Supervisions;
+using UntisExportService.Core.Inputs.Timetable;
+using UntisExportService.Core.Inputs.Tuitions;
+using UntisExportService.Core.Outputs;
 using UntisExportService.Core.Settings;
-using UntisExportService.Core.Upload;
+using UntisExportService.Core.Settings.Inputs.Exams;
+using UntisExportService.Core.Settings.Inputs.Rooms;
+using UntisExportService.Core.Settings.Inputs.Substitutions;
+using UntisExportService.Core.Settings.Inputs.Supervisions;
+using UntisExportService.Core.Settings.Inputs.Timetable;
+using UntisExportService.Core.Settings.Inputs.Tuitions;
+using UntisExportService.Core.Settings.Outputs;
 
 namespace UntisExportService.Core
 {
     public class ExportService : IExportService
     {
-        private bool isExportRunning = false;
-        private readonly object exportLock = new object();
+        private readonly IWatcher<IExamInput> examWatcher;
+        private readonly IWatcher<IRoomInput> roomWatcher;
+        private readonly IWatcher<ISubstitutionInput> substitutionWatcher;
+        private readonly IWatcher<ISupervisionInput> supervisionWatcher;
+        private readonly IWatcher<ITimetableInput> timetableWatcher;
+        private readonly IWatcher<ITuitionInput> tuitionWatcher;
 
+        private readonly IIndex<string, IOutputHandler> outputHandlers;
+
+        private readonly IEventBus eventBus;
         private readonly ISettingsService settingsService;
-        private readonly IFileSystemWatcher watcher;
-        private readonly IUploadService uploadService;
-        private readonly IUntisExporter untisExporter;
         private readonly ILogger<ExportService> logger;
 
-        public ExportService(ISettingsService settingsService, IFileSystemWatcher watcher, IUploadService uploadService, IUntisExporter untisExporter, ILogger<ExportService> logger)
+        public ExportService(IEventBus eventBus, ISettingsService settingsService, IWatcher<IExamInput> examWatcher, IWatcher<IRoomInput> roomWatcher, 
+            IWatcher<ISubstitutionInput> substitutionWatcher, IWatcher<ISupervisionInput> supervisionWatcher, 
+            IWatcher<ITimetableInput> timetableWatcher, IWatcher<ITuitionInput> tuitionWatcher, IIndex<string, IOutputHandler> outputHandlers, ILogger<ExportService> logger)
         {
+            this.eventBus = eventBus;
             this.settingsService = settingsService;
-            this.watcher = watcher;
-            this.uploadService = uploadService;
-            this.untisExporter = untisExporter;
+
+            this.examWatcher = examWatcher;
+            this.roomWatcher = roomWatcher;
+            this.substitutionWatcher = substitutionWatcher;
+            this.supervisionWatcher = supervisionWatcher;
+            this.timetableWatcher = timetableWatcher;
+            this.tuitionWatcher = tuitionWatcher;
+            this.outputHandlers = outputHandlers;
+
             this.logger = logger;
         }
 
         public void End()
         {
+            examWatcher.Stop();
+            roomWatcher.Stop();
+            substitutionWatcher.Stop();
+            supervisionWatcher.Stop();
+            timetableWatcher.Stop();
+            tuitionWatcher.Stop();
+
             logger.LogInformation("Export service stopped.");
         }
 
         public void Start()
         {
+            var settings = settingsService.Settings;
+
+            logger.LogDebug("Configure watchers...");
+            Configure(settings);
+
+            logger.LogDebug("Register events...");
+            RegisterEvents(settings);
+
+            logger.LogDebug("Start watchers...");
+
+            examWatcher.Start();
+            roomWatcher.Start();
+            substitutionWatcher.Start();
+            supervisionWatcher.Start();
+            timetableWatcher.Start();
+            tuitionWatcher.Start();
+
             logger.LogInformation("Export service started.");
-
-            watcher.Path = settingsService.Settings.HtmlPath;
-            watcher.Changed += OnWatcherChanged;
         }
 
-        private async void OnWatcherChanged(IFileSystemWatcher sender, OnChangedEventArgs args)
+        private void Configure(ISettings settings)
         {
-            try
+            examWatcher.SyncThresholdInSeconds = settings.SyncThresholdInSeconds;
+            examWatcher.Configure(settings.Inputs.Exams);
+
+            roomWatcher.SyncThresholdInSeconds = settings.SyncThresholdInSeconds;
+            roomWatcher.Configure(settings.Inputs.Rooms);
+
+            substitutionWatcher.SyncThresholdInSeconds = settings.SyncThresholdInSeconds;
+            substitutionWatcher.Configure(settings.Inputs.Substitutions);
+
+            supervisionWatcher.SyncThresholdInSeconds = settings.SyncThresholdInSeconds;
+            supervisionWatcher.Configure(settings.Inputs.Supervisions);
+
+            timetableWatcher.SyncThresholdInSeconds = settings.SyncThresholdInSeconds;
+            timetableWatcher.Configure(settings.Inputs.Timetable);
+
+            tuitionWatcher.SyncThresholdInSeconds = settings.SyncThresholdInSeconds;
+            tuitionWatcher.Configure(settings.Inputs.Tuitions);
+        }
+
+        private void RegisterEvents(ISettings settings)
+        {
+            eventBus.Subscribe<EventBase>(HandleAllEvents);
+
+            /*eventBus.Subscribe<ExamEvent>(HandleExamEvent);
+            eventBus.Subscribe<RoomEvent>(HandleRoomEvent);
+            eventBus.Subscribe<SubstitutionEvent>(HandleSubstitutionEvent);
+            eventBus.Subscribe<AbsenceEvent>(HandleAbsenceEvent);
+            eventBus.Subscribe<InfotextEvent>(HandleInfotextEvent);
+            eventBus.Subscribe<SupervisionEvent>(HandleSupervisionEvent);
+            eventBus.Subscribe<TimetableEvent>(HandleTimetableEvent);
+            eventBus.Subscribe<TuitionEvent>(HandleTuitionEvent);*/
+        }
+
+        private void HandleAllEvents(EventBase obj)
+        {
+            if (obj is ExamEvent)
             {
-                logger.LogInformation("Detected filesystem changes.");
-
-                if (settingsService.Settings.IsServiceEnabled == false)
-                {
-                    logger.LogInformation("Do not publish to ICC as service is disabled in settings file.");
-                    return;
-                }
-
-                lock (exportLock)
-                {
-                    if (isExportRunning)
-                    {
-                        logger.LogDebug("Export is already running, skipping.");
-                        return;
-                    }
-
-                    isExportRunning = true;
-                }
-
-                if (settingsService.Settings.SyncThresholdInSeconds > 0)
-                {
-                    logger.LogDebug($"Waiting {settingsService.Settings.SyncThresholdInSeconds} seconds for Untis to create all files.");
-                    await Task.Delay(TimeSpan.FromSeconds(settingsService.Settings.SyncThresholdInSeconds));
-                }
-
-                // Read all files in directory
-                var files = Directory.GetFiles(settingsService.Settings.HtmlPath, "*.htm");
-
-                foreach (var file in files)
-                {
-                    logger.LogDebug($"Found file {file}.");
-                }
-
-                var substitutions = new List<Substitution>();
-                var infotexts = new List<Infotext>();
-
-                var settings = GetExportSettings();
-
-                foreach (var file in files)
-                {
-                    using (var streamReader = new StreamReader(file, Encoding.GetEncoding(settingsService.Settings.Encoding)))
-                    {
-                        var html = await streamReader.ReadToEndAsync();
-                        var result = await untisExporter.ParseHtmlAsync(settings, html);
-
-                        substitutions.AddRange(result.Substitutions);
-                        infotexts.AddRange(result.Infotexts);
-                    }
-                }
-
-                await RemoveSubsitutionsWithRemovableTypeAsync(substitutions).ConfigureAwait(false);
-                await ReplaceSubstitutionTypesAsync(substitutions).ConfigureAwait(false);
-                
-                // Pack everything and and upload
-                await uploadService.UploadSubstitutionsAsync(substitutions).ConfigureAwait(false);
-                await uploadService.UploadInfotextsAsync(infotexts).ConfigureAwait(false);
-
-                logger.LogInformation("Successfully published to ICC.");
-
-                lock (exportLock)
-                {
-                    isExportRunning = false;
-                }
+                HandleExamEvent(obj as ExamEvent);
             }
-            catch (Exception e)
+            else if (obj is RoomEvent)
             {
-                logger.LogError(e, "Something went terribly wrong.");
+                HandleRoomEvent(obj as RoomEvent);
+            }
+            else if (obj is SubstitutionEvent)
+            {
+                HandleSubstitutionEvent(obj as SubstitutionEvent);
+            }
+            else if (obj is AbsenceEvent)
+            {
+                HandleAbsenceEvent(obj as AbsenceEvent);
+            }
+            else if (obj is InfotextEvent)
+            {
+                HandleInfotextEvent(obj as InfotextEvent);
+            }
+            else if (obj is SupervisionEvent)
+            {
+                HandleSupervisionEvent(obj as SupervisionEvent);
+            }
+            else if (obj is TimetableEvent)
+            {
+                HandleTimetableEvent(obj as TimetableEvent);
+            }
+            else if (obj is TuitionEvent)
+            {
+                HandleTuitionEvent(obj as TuitionEvent);
             }
         }
 
-        private Task ReplaceSubstitutionTypesAsync(List<Substitution> substitutions)
+        private void Handle(string entity, Action<IOutputHandler, IOutput> handle)
         {
-            logger.LogDebug("Replace substitution types.");
-
-            if (settingsService.Settings.Untis.TypeReplacements == null || settingsService.Settings.Untis.TypeReplacements.Count == 0)
+            foreach (var output in settingsService.Settings.Outputs)
             {
-                logger.LogDebug($"No type replacements given. Skipping.");
-                return Task.CompletedTask;
-            }
-
-            return Task.Run(() =>
-            {
-                foreach (var substitution in substitutions)
+                if (output.Entities.Contains(entity))
                 {
-                    foreach (var kv in settingsService.Settings.Untis.TypeReplacements)
+                    if (outputHandlers.TryGetValue(output.Type, out var handler))
                     {
-                        substitution.Type = substitution.Type.Replace(kv.Key, kv.Value);
+                        if (handler.CanHandleInfotexts)
+                        {
+                            logger.LogDebug($"Using output handler of type {output.Type}.");
+                            handle(handler, output);
+                        }
+                        else
+                        {
+                            logger.LogError($"Output handler {output.Type} does not support entity '{entity}'.");
+                        }
+                    }
+                    else
+                    {
+                        logger.LogError($"Output handler {output.Type} not supported.");
                     }
                 }
-            });
-        }
-
-        private Task RemoveSubsitutionsWithRemovableTypeAsync(List<Substitution> substitutions)
-        {
-            logger.LogDebug("Remove substitutions with removable types.");
-
-            if(settingsService.Settings.Untis.RemoveSubstitutionsWithTypes == null || settingsService.Settings.Untis.RemoveSubstitutionsWithTypes.Length == 0)
-            {
-                logger.LogDebug("No removable types specified. Skipping.");
-                return Task.CompletedTask;
             }
-
-            return Task.Run(() =>
-            {
-                var removableTypes = settingsService.Settings.Untis.RemoveSubstitutionsWithTypes;
-
-                var deleteIdx = substitutions.Select((x, i) => new { Substitution = x, Index = i }).Where(x => removableTypes.Contains(x.Substitution.Type)).Select(x => x.Index).OrderByDescending(x => x).ToList();
-                foreach (var idx in deleteIdx)
-                {
-                    substitutions.RemoveAt(idx);
-                }
-
-                logger.LogDebug($"Removed {deleteIdx.Count} exams.");
-            });
         }
 
-        private ExportSettings GetExportSettings()
+        private void HandleInfotextEvent(InfotextEvent obj)
         {
-            var untisSettings = settingsService.Settings.Untis;
+            Handle("infotext", (handler, settings) => handler.HandleInfotextEvent(obj, settings));
+        }
 
-            var settings = new ExportSettings
-            {
-                FixBrokenPTags = untisSettings.FixBrokenPTags,
-                DateTimeFormat = untisSettings.DateTimeFormat,
-                IncludeAbsentValues = untisSettings.InlcudeAbsentValues,
-            };
+        private void HandleAbsenceEvent(AbsenceEvent obj)
+        {
+            Handle("absence", (handler, settings) => handler.HandleAbsenceEvent(obj, settings));
+        }
 
-            settings.EmptyValues.Clear();
-            settings.EmptyValues.AddRange(untisSettings.EmptyValues);
+        private void HandleSupervisionEvent(SupervisionEvent obj)
+        {
+            Handle("supervision", (handler, settings) => handler.HandleSupervisionEvent(obj, settings));
+        }
 
-            var untisColumnSettings = untisSettings.ColumnSettings;
+        private void HandleTimetableEvent(TimetableEvent obj)
+        {
+            Handle("timetable", (handler, settings) => handler.HandleTimetableEvent(obj, settings));
+        }
 
-            settings.ColumnSettings.IdColumn = untisColumnSettings.IdColumn;
-            settings.ColumnSettings.DateColumn = untisColumnSettings.DateColumn;
-            settings.ColumnSettings.LessonColumn = untisColumnSettings.LessonColumn;
-            settings.ColumnSettings.GradesColumn = untisColumnSettings.GradesColumn;
-            settings.ColumnSettings.ReplacementGradesColumn = untisColumnSettings.ReplacementGradesColumn;
-            settings.ColumnSettings.TeachersColumn = untisColumnSettings.TeachersColumn;
-            settings.ColumnSettings.ReplacementTeachersColumn = untisColumnSettings.ReplacementTeachersColumn;
-            settings.ColumnSettings.SubjectColumn = untisColumnSettings.SubjectColumn;
-            settings.ColumnSettings.ReplacementSubjectColumn = untisColumnSettings.ReplacementSubjectColumn;
-            settings.ColumnSettings.RoomColumn = untisColumnSettings.RoomColumn;
-            settings.ColumnSettings.ReplacementRoomColumn = untisColumnSettings.ReplacementRoomColumn;
-            settings.ColumnSettings.TypeColumn = untisColumnSettings.TypeColumn;
-            settings.ColumnSettings.RemarkColumn = untisColumnSettings.RemarkColumn;
+        private void HandleTuitionEvent(TuitionEvent obj)
+        {
+            Handle("tuition", (handler, settings) => handler.HandleTuitionEvent(obj, settings));
+        }
 
-            return settings;
+        private void HandleRoomEvent(RoomEvent obj)
+        {
+            Handle("room", (handler, settings) => handler.HandleRoomEvent(obj, settings));
+        }
+
+        private void HandleSubstitutionEvent(SubstitutionEvent obj)
+        {
+            Handle("substitution", (handler, settings) => handler.HandleSubstitutionEvent(obj, settings));
+        }
+
+        private void HandleExamEvent(ExamEvent obj)
+        {
+            Handle("exam", (handler, settings) => handler.HandleExamEvent(obj, settings));
         }
     }
 }

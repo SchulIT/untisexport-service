@@ -38,7 +38,11 @@ namespace UntisExportService.Core.FileSystem
         {
             this.logger = logger;
 
-            watcher = new System.IO.FileSystemWatcher();
+            watcher = new System.IO.FileSystemWatcher
+            {
+                IncludeSubdirectories = true
+            };
+
             watcher.Changed += OnFileSystemWatcherChanged;
             watcher.Renamed += OnFileSystemWatcherRenamed;
             watcher.EnableRaisingEvents = false;
