@@ -165,7 +165,7 @@ namespace UntisExportService.Core.Outputs.Icc
                     LessonEnd = exam.LessonEnd,
                     Description = exam.Remark,
                     Rooms = exam.Rooms.ToList(),
-                    Invigilators = exam.Invigilators.ToList(),
+                    Supervisions = exam.Supervisions.ToList(),
                     Tuitions = tuitions
                 };
             });
