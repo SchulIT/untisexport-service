@@ -10,6 +10,8 @@ namespace UntisExportService.Core.Tuitions
 
         string ResolveStudyGroup(string grade);
 
+        string ResolveStudyGroup(string grade, string subject, string teacher);
+
         string ResolveTuition(string grade, string subject, string teacher);
     }
 

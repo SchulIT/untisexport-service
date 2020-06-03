@@ -49,6 +49,11 @@ namespace UntisExportService.Core.Tuitions
             return GetStrategy(settings)?.ResolveTuition(grade, subject, teacher);
         }
 
+        public string ResolveStudyGroup(string grade, string subject, string teacher)
+        {
+            var settings = settingsService.Settings.Tuition;
+            return GetStrategy(settings)?.ResolveStudyGroup(grade, subject, teacher);
+        }
 
         public string ResolveStudyGroup(string grade)
         {

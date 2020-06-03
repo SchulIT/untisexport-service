@@ -9,6 +9,8 @@ namespace UntisExportService.Core.Tuitions
 
         public abstract string ResolveStudyGroup(string grade);
 
+        public abstract string ResolveStudyGroup(string grade, string subject, string teacher);
+
         public abstract string ResolveTuition(string grade, string subject, string teacher);
 
         public void Initialize(Settings.Tuitions.ITuitionResolver inputSetting)

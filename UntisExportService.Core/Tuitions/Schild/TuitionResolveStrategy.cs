@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using SchulIT.SchildExport;
 using SchulIT.SchildExport.Models;
 using System;
@@ -94,6 +95,15 @@ namespace UntisExportService.Core.Tuitions.Schild
                         this.tuitions[grade.Name].Add(new TuitionStudyGroupTuple(tuition, studyGroup, subject));
                     }
                 }
+
+                foreach (var studyGroup in studyGroups.Where(x => x.Type == StudyGroupType.Grade))
+                {
+                    gradeStudyGroups.Add(studyGroup.Name, studyGroup);
+                }
+
+                Console.WriteLine(gradeStudyGroups);
+
+                //Console.WriteLine(JsonConvert.SerializeObject(this.tuitions, Formatting.Indented));
             }
             catch (Exception e)
             {
@@ -135,6 +145,65 @@ namespace UntisExportService.Core.Tuitions.Schild
         public override string ResolveStudyGroup(string grade)
         {
             return gradeStudyGroups.ContainsKey(grade) ? GetStudyGroupId(gradeStudyGroups[grade]) : null;
+        }
+
+        private string GetStudyGroupId(StudyGroupRef studyGroupRef)
+        {
+            if (studyGroupRef?.Id != null)
+            {
+                return studyGroupRef.Id.ToString();
+            }
+
+            return studyGroupRef.Name;
+        }
+
+        public override string ResolveStudyGroup(string grade, string subject, string teacher)
+        {
+            if (subject == null)
+            {
+                logger.LogDebug($"Subject must not be empty.");
+                return null;
+            }
+
+            if (!tuitions.ContainsKey(grade))
+            {
+                logger.LogDebug($"Grade {grade} does not exist.");
+                return null;
+            }
+
+            var candidates = tuitions[grade].Where(x => x.Subject == subject);
+
+            if (!candidates.Any())
+            {
+                logger.LogDebug($"Did not find any tuition for grade {grade}, subject {subject} and teacher {teacher}");
+                return null;
+            }
+
+            if (candidates.Count() == 1)
+            {
+                return GetStudyGroupId(candidates.First().Tuition.StudyGroupRef);
+            }
+
+            var teachers = candidates.Select(x => x.Tuition.TeacherRef.Acronym).ToList();
+
+            logger.LogDebug($"Possible teachers are: {string.Join(", ", teachers)}");
+
+            if (string.IsNullOrEmpty(teacher))
+            {
+                logger.LogDebug($"Ambiguous tuition found for grade {grade} and subject {subject}. Teacher needs to be specified.");
+                return null;
+            }
+
+            foreach (var candidate in candidates.Where(x => x.Tuition.TeacherRef != null))
+            {
+                if (candidate.Tuition.TeacherRef.Acronym == teacher)
+                {
+                    return GetTuitionId(candidate.Tuition);
+                }
+            }
+
+            logger.LogDebug($"Did not find any tuition for grade {grade}, subject {subject} and teacher {teacher}");
+            return null;
         }
 
         public override string ResolveTuition(string grade, string subject, string teacher)

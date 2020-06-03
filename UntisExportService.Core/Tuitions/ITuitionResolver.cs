@@ -6,6 +6,8 @@
 
         string ResolveTuition(string grade, string subject, string teacher);
 
+        string ResolveStudyGroup(string grade, string subject, string teacher);
+
         string ResolveStudyGroup(string grade);
     }
 }
