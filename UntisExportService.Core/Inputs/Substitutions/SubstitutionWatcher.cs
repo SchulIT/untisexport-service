@@ -63,13 +63,13 @@ namespace UntisExportService.Core.Inputs.Substitutions
                         logger.LogDebug($"Got {result.Absences.Count} absence(s).");
                         logger.LogDebug($"Got {result.Infotexts.Count} infotext(s).");
 
-                        await ReplaceSubstitutionTypesAsync(substitutions);
-                        await RemoveSubsitutionsWithRemovableTypeAsync(substitutions);
-
                         substitutions.AddRange(result.Substitutions);
                         infotexts.AddRange(result.Infotexts);
                         absences.AddRange(result.Absences);
                     }
+
+                    await ReplaceSubstitutionTypesAsync(substitutions);
+                    substitutions = await RemoveSubsitutionsWithRemovableTypeAsync(substitutions);
                 }
             }
 
@@ -103,27 +103,21 @@ namespace UntisExportService.Core.Inputs.Substitutions
             });
         }
 
-        private Task RemoveSubsitutionsWithRemovableTypeAsync(List<Substitution> substitutions)
+        private Task<List<Substitution>> RemoveSubsitutionsWithRemovableTypeAsync(List<Substitution> substitutions)
         {
             logger.LogDebug("Remove substitutions with removable types.");
 
             if (settings.RemoveSubstitutionsWithTypes == null || settings.RemoveSubstitutionsWithTypes.Length == 0)
             {
                 logger.LogDebug("No removable types specified. Skipping.");
-                return Task.CompletedTask;
+                return Task.FromResult(substitutions);
             }
 
             return Task.Run(() =>
             {
                 var removableTypes = settings.RemoveSubstitutionsWithTypes;
 
-                var deleteIdx = substitutions.Select((x, i) => new { Substitution = x, Index = i }).Where(x => removableTypes.Contains(x.Substitution.Type)).Select(x => x.Index).OrderByDescending(x => x).ToList();
-                foreach (var idx in deleteIdx)
-                {
-                    substitutions.RemoveAt(idx);
-                }
-
-                logger.LogDebug($"Removed {deleteIdx.Count} exams.");
+                return substitutions.Where(x => removableTypes.Contains(x.Type) == false).ToList();
             });
         }
     }
