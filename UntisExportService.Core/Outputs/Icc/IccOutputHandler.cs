@@ -232,7 +232,7 @@ namespace UntisExportService.Core.Outputs.Icc
                     }
                     else
                     {
-                        tuition = tuitionResolver.ResolveTuition(grade, substitution.Subject, substitution.Teachers.FirstOrDefault());
+                        tuition = tuitionResolver.ResolveStudyGroup(grade, substitution.Subject, substitution.Teachers.FirstOrDefault());
                     }
 
                     if (tuition != null)
@@ -330,14 +330,13 @@ namespace UntisExportService.Core.Outputs.Icc
                     continue;
                 }
 
-                foreach (var week in supervisionWeeks)
-                {
-                    if (!weeks.ContainsKey(week))
-                    {
-                        logger.LogError($"Cannot find week mapping for week {week}. Skip supervision.");
-                        continue;
-                    }
+                var namedWeeks = supervisionWeeks
+                    .Select(x => weeks.ContainsKey(x) ? weeks[x] : null)
+                    .Where(x => x != null)
+                    .Distinct();
 
+                foreach (var week in namedWeeks)
+                {
                     supervisions.Add(new TimetableSupervisionData
                     {
                         Id = GetOrComputeId(null),
@@ -346,7 +345,7 @@ namespace UntisExportService.Core.Outputs.Icc
                         Location = supervision.Location,
                         Teacher = supervision.Teacher,
                         IsBefore = true,
-                        Week = weeks[week]
+                        Week = week
                     });
                 }
             }
@@ -386,7 +385,7 @@ namespace UntisExportService.Core.Outputs.Icc
 
                 if(tuition == null)
                 {
-                    logger.LogError($"Cannot resolve tuition with subject {lesson.Subject} for grade {null}. Skip lesson.");
+                    logger.LogError($"Cannot resolve tuition with subject {lesson.Subject} for grade {lesson.Grade} and teacher {lesson.Teacher}. Skip lesson.");
                     continue;
                 }
 
