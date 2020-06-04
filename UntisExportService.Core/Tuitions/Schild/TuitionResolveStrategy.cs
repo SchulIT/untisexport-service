@@ -86,9 +86,20 @@ namespace UntisExportService.Core.Tuitions.Schild
                             subject = studyGroup.Name;
                         }
 
-                        if(inputSetting.SchildToUntisSubjectMap != null && inputSetting.SchildToUntisSubjectMap.ContainsKey(subject))
+                        var courseRule = inputSetting.SubjectConversationRules.FirstOrDefault(x => x.IsCourse && x.ExternalSubject == studyGroup.Name && x.Grades.Contains(grade.Name));
+
+                        if(courseRule != null)
                         {
-                            subject = inputSetting.SchildToUntisSubjectMap[subject];
+                            logger.LogDebug($"Found a conversion rule for study group {studyGroup.Name} (grade {grade.Name}): Untis subject is {courseRule.UntisSubject}");
+                            subject = courseRule.UntisSubject;
+                        }
+
+                        var subjectRule = inputSetting.SubjectConversationRules.FirstOrDefault(x => !x.IsCourse && x.ExternalSubject == tuition.SubjectRef.Abbreviation && x.Grades.Contains(grade.Name));
+
+                        if(subject != null)
+                        {
+                            logger.LogDebug($"Found a conversion rule for subject {tuition.SubjectRef.Abbreviation} (grade {grade.Name}): Untis subject is {courseRule.UntisSubject}");
+                            subject = courseRule.UntisSubject;
                         }
 
                         this.tuitions[grade.Name].Add(new TuitionStudyGroupTuple(tuition, studyGroup, subject));
