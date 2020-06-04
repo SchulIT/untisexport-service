@@ -4,7 +4,7 @@ namespace UntisExportService.Core.Inputs.Timetable
 {
     public class GradeHtmlAdapter : HtmlAdapterBase
     {
-        public override string SearchPattern { get { return "Ex_K_HTML_*.htm"; } }
+        public override string SearchPattern { get { return "**/c*.htm"; } }
 
         protected override TimetableType Type { get { return TimetableType.Grade; } }
 

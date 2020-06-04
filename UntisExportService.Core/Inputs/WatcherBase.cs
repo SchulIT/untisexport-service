@@ -120,5 +120,7 @@ namespace UntisExportService.Core.Inputs
                 lastTrigger = null;
             }
         }
+
+
     }
 }

@@ -43,7 +43,7 @@ namespace UntisExportService.Core.Inputs.Timetable
 
             foreach(var adapter in adapters)
             {
-                var files = Directory.GetFiles(settings.Path, adapter.SearchPattern);
+                var files = FilesystemUtils.GetFiles(settings.Path, adapter.SearchPattern);
                 logger.LogDebug($"{adapter.GetType().ToString()} found {files.Length} file(s).");
 
                 foreach(var file in files)
@@ -51,10 +51,16 @@ namespace UntisExportService.Core.Inputs.Timetable
                     logger.LogDebug($"Found file {file}.");
                     var contents = await fileReader.GetContentsAsync(file, Encoding.GetEncoding(settings.Encoding));
 
-                    logger.LogDebug($"File {file} was read. Parsing substitutions.");
+                    logger.LogDebug($"File {file} was read. Parsing timetable.");
                     var result = await adapter.GetLessonsAsync(contents, settings);
 
                     logger.LogDebug($"Period: {result.Period}, Lessons: {result.Lessons.Count}.");
+
+                    if(adapter.IsMarkedToExport(result.Objective, settings) == false)
+                    {
+                        logger.LogDebug($"Ignoring timetable for objective '{result.Objective}' as it is not whitelisted in the config.");
+                        continue;
+                    }
 
                     if(periodLessons.ContainsKey(result.Period) == false)
                     {

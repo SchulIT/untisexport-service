@@ -6,5 +6,7 @@ namespace UntisExportService.Core.Settings.External.Schild.Json
     {
         [JsonProperty("connection_string")]
         public string ConnectionString { get; set; } = string.Empty;
+
+        public string Type => "schild";
     }
 }

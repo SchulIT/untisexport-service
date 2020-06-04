@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace UntisExportService.Core.Settings.Inputs.Timetable
 {
@@ -9,5 +7,9 @@ namespace UntisExportService.Core.Settings.Inputs.Timetable
         int FirstLesson { get; }
 
         bool UseWeeks { get; }
+
+        List<string> Subjects { get; }
+
+        List<string> Grades { get; }
     }
 }

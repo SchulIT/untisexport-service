@@ -1,5 +1,7 @@
-﻿using SchulIT.UntisExport.Timetable;
+﻿using DotNet.Globbing;
+using SchulIT.UntisExport.Timetable;
 using SchulIT.UntisExport.Timetable.Html;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UntisExportService.Core.Extensions;
 using UntisExportService.Core.Settings.Inputs.Timetable;
@@ -33,6 +35,36 @@ namespace UntisExportService.Core.Inputs.Timetable
             }
 
             return Task.FromResult<TimetableExportResult>(null);
+        }
+
+        private List<string> GetWhitelist(ITimetableInput timetableInput)
+        {
+            switch (Type)
+            {
+                case TimetableType.Grade:
+                    return timetableInput.Grades;
+
+                case TimetableType.Subject:
+                    return timetableInput.Subjects;
+            }
+
+            return new List<string>();
+        }
+
+        public bool IsMarkedToExport(string objective, ITimetableInput timetableInput)
+        {
+            var whitelist = GetWhitelist(timetableInput);
+
+            foreach (var pattern in whitelist)
+            {
+                var glob = Glob.Parse(pattern);
+                if (glob.IsMatch(objective))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

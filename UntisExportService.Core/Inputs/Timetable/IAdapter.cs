@@ -9,5 +9,7 @@ namespace UntisExportService.Core.Inputs.Timetable
         string SearchPattern { get; }
 
         Task<TimetableExportResult> GetLessonsAsync(string contents, ITimetableInput timetableInput);
+
+        bool IsMarkedToExport(string objective, ITimetableInput timetableInput);
     }
 }

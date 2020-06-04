@@ -48,7 +48,7 @@ namespace UntisExportService.Core.Inputs.Substitutions
             {
                 if(adapter.Use(settings))
                 {
-                    var files = Directory.GetFiles(settings.Path, adapter.SearchPattern);
+                    var files = FilesystemUtils.GetFiles(settings.Path, adapter.SearchPattern);
                     logger.LogDebug($"Found {files.Length} file(s) matching '{adapter.SearchPattern}'.");
 
                     foreach(var file in files)

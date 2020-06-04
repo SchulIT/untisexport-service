@@ -370,80 +370,112 @@ namespace UntisExportService.Core.Outputs.Icc
 
             if (period == null)
             {
-                logger.LogError($"Cannot resolve period {@event.Period}. Skip upload.");
+                logger.LogDebug($"Cannot resolve period {@event.Period}. Skip upload.");
                 return;
             }
 
-            var lessons = new List<TimetableLessonData>();
-            var addedLessons = new List<string>();
+            var lessons = new Dictionary<string, TimetableLessonData>();
 
             string computeAddedLessonKey(int day, int lesson, string week, string tuition) => $"{day}-{lesson}-{week}-{tuition}";
 
-            foreach (var lesson in @event.Lessons)
+            try
             {
-                var tuition = tuitionResolver.ResolveTuition(lesson.Grade, lesson.Subject, lesson.Teacher);
-
-                if(tuition == null)
+                foreach (var lesson in @event.Lessons)
                 {
-                    logger.LogError($"Cannot resolve tuition with subject {lesson.Subject} for grade {lesson.Grade} and teacher {lesson.Teacher}. Skip lesson.");
-                    continue;
-                }
+                    var tuition = tuitionResolver.ResolveTuition(lesson.Grade, lesson.Subject, lesson.Teacher);
 
-                foreach (var week in lesson.Weeks)
-                {
-                    // ICC only supports double lessons max -> split lessons up!
-                    var duration = lesson.LessonEnd - lesson.LessonStart;
-
-                    if (duration > 1)
+                    if (tuition == null)
                     {
-                        // Split lessons into separate lessons
-                        for(int i = 0; i <= duration; i++)
+                        logger.LogDebug($"Cannot resolve tuition with subject {lesson.Subject} for grade {lesson.Grade} and teacher {lesson.Teacher}. Skip lesson.");
+                        continue;
+                    }
+
+                    foreach (var week in lesson.Weeks)
+                    {
+                        // ICC only supports double lessons max -> split lessons up!
+                        var duration = lesson.LessonEnd - lesson.LessonStart;
+
+                        if (duration > 1)
+                        {
+                            // Split lessons into separate lessons
+                            for (int i = 0; i <= duration; i++)
+                            {
+                                var data = new TimetableLessonData
+                                {
+                                    Id = GetOrComputeId(null),
+                                    Tuition = tuition,
+                                    Lesson = lesson.LessonStart + i,
+                                    IsDoubleLesson = false,
+                                    Room = lesson.Room,
+                                    Day = lesson.Day,
+                                    Week = week
+                                };
+
+                                var id = computeAddedLessonKey(lesson.Day, lesson.LessonStart + i, week, tuition);
+
+                                if (!lessons.ContainsKey(id))
+                                {
+                                    lessons.Add(id, data);
+                                }
+                            }
+                        }
+                        else
                         {
                             var data = new TimetableLessonData
                             {
                                 Id = GetOrComputeId(null),
                                 Tuition = tuition,
-                                Lesson = lesson.LessonStart + i,
-                                IsDoubleLesson = false,
+                                Lesson = lesson.LessonStart,
+                                IsDoubleLesson = lesson.LessonStart != lesson.LessonEnd,
                                 Room = lesson.Room,
                                 Day = lesson.Day,
                                 Week = week
                             };
 
-                            var id = computeAddedLessonKey(lesson.Day, lesson.LessonStart + i, week, tuition);
-
-                            if(!addedLessons.Contains(id))
+                            if (data.IsDoubleLesson)
                             {
-                                lessons.Add(data);
-                                addedLessons.Add(id);
+                                // Check whether an existing lesson was generated because it was splitted 
+                                var id = computeAddedLessonKey(lesson.Day, lesson.LessonStart, week, tuition);
+                                var nextLessonId = computeAddedLessonKey(lesson.Day, lesson.LessonStart + 1, week, tuition);
+
+                                if (lessons.ContainsKey(id))
+                                {
+                                    lessons[id] = data;
+                                }
+                                else
+                                {
+                                    lessons.Add(id, data);
+                                }
+
+                                if (lessons.ContainsKey(nextLessonId))
+                                {
+                                    lessons[nextLessonId] = data;
+                                }
+                                else
+                                {
+                                    lessons.Add(nextLessonId, data);
+                                }
                             }
-                        }
-                    }
-                    else
-                    {
-                        var data = new TimetableLessonData
-                        {
-                            Id = GetOrComputeId(null),
-                            Tuition = tuition,
-                            Lesson = lesson.LessonStart,
-                            IsDoubleLesson = lesson.LessonStart != lesson.LessonEnd,
-                            Room = lesson.Room,
-                            Day = lesson.Day,
-                            Week = week
-                        };
+                            else
+                            {
+                                var id = computeAddedLessonKey(lesson.Day, lesson.LessonStart, week, tuition);
 
-                        var id = computeAddedLessonKey(lesson.Day, lesson.LessonStart, week, tuition);
-
-                        if (!addedLessons.Contains(id))
-                        {
-                            lessons.Add(data);
-                            addedLessons.Add(id);
+                                if (!lessons.ContainsKey(id))
+                                {
+                                    lessons.Add(id, data);
+                                }
+                            }
                         }
                     }
                 }
             }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Something went wrong while constructing all timetable lessons.");
+                return;
+            }
 
-            var response = await iccImporter.ImportTimetableLessonsAsync(period, lessons);
+            var response = await iccImporter.ImportTimetableLessonsAsync(period, lessons.Select(x => x.Value).Distinct().ToList());
             await HandleResponseAsync(response);
         }
 

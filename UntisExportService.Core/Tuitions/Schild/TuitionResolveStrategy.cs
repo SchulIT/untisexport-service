@@ -3,6 +3,7 @@ using SchulIT.SchildExport.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UntisExportService.Core.Extensions;
 using UntisExportService.Core.External.Schild;
 using UntisExportService.Core.Settings.Tuitions;
 
@@ -86,7 +87,7 @@ namespace UntisExportService.Core.Tuitions.Schild
                             subject = studyGroup.Name;
                         }
 
-                        var courseRule = inputSetting.SubjectConversationRules.FirstOrDefault(x => x.IsCourse && x.ExternalSubject == studyGroup.Name && x.Grades.Contains(grade.Name));
+                        var courseRule = inputSetting.SubjectConversationRules.FirstOrDefault(x => x.IsCourse && x.ExternalSubject == studyGroup.Name && x.Grades.MatchesAny(grade.Name));
 
                         if(courseRule != null)
                         {
@@ -94,11 +95,11 @@ namespace UntisExportService.Core.Tuitions.Schild
                             subject = courseRule.UntisSubject;
                         }
 
-                        var subjectRule = inputSetting.SubjectConversationRules.FirstOrDefault(x => !x.IsCourse && x.ExternalSubject == tuition.SubjectRef.Abbreviation && x.Grades.Contains(grade.Name));
+                        var subjectRule = inputSetting.SubjectConversationRules.FirstOrDefault(x => !x.IsCourse && x.ExternalSubject == tuition.SubjectRef.Abbreviation && x.Grades.MatchesAny(grade.Name));
 
-                        if(subject != null)
+                        if(subjectRule != null)
                         {
-                            logger.LogDebug($"Found a conversion rule for subject {tuition.SubjectRef.Abbreviation} (grade {grade.Name}): Untis subject is {courseRule.UntisSubject}");
+                            logger.LogDebug($"Found a conversion rule for subject {tuition.SubjectRef.Abbreviation} (grade {grade.Name}): Untis subject is {subjectRule.UntisSubject}");
                             subject = courseRule.UntisSubject;
                         }
 

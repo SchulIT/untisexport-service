@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace UntisExportService.Core.Settings.Inputs.Timetable.Json
 {
@@ -15,5 +16,11 @@ namespace UntisExportService.Core.Settings.Inputs.Timetable.Json
 
         [JsonProperty("use_weeks")]
         public bool UseWeeks { get; set; } = true;
+
+        [JsonProperty("subjects")]
+        public List<string> Subjects { get; set; } = new List<string>();
+
+        [JsonProperty("grades")]
+        public List<string> Grades { get; set; } = new List<string>();
     }
 }
