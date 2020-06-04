@@ -111,10 +111,6 @@ namespace UntisExportService.Core.Tuitions.Schild
                 {
                     gradeStudyGroups.Add(studyGroup.Name, studyGroup);
                 }
-
-                Console.WriteLine(gradeStudyGroups);
-
-                //Console.WriteLine(JsonConvert.SerializeObject(this.tuitions, Formatting.Indented));
             }
             catch (Exception e)
             {
