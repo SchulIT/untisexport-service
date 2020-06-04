@@ -25,6 +25,8 @@ namespace UntisExportService.Core.Inputs
         private bool isExportRunning = false;
         private readonly object exportLock = new object();
 
+        private DateTime? lastTrigger = null;
+
         protected readonly IFileSystemWatcher watcher;
         protected readonly IEventBus eventBus;
         private readonly ILogger logger;
@@ -73,6 +75,8 @@ namespace UntisExportService.Core.Inputs
 
                 lock (exportLock)
                 {
+                    lastTrigger = DateTime.Now;
+
                     if (isExportRunning)
                     {
                         logger.LogDebug("Export already running, skipping.");
@@ -84,8 +88,12 @@ namespace UntisExportService.Core.Inputs
 
                 if (SyncThresholdInSeconds > 0)
                 {
-                    logger.LogDebug($"Waiting {SyncThresholdInSeconds} second(s) to Untis to create all files.");
-                    await Task.Delay(TimeSpan.FromSeconds(SyncThresholdInSeconds));
+                    var elapsed = DateTime.Now - lastTrigger.Value;
+                    if(elapsed.TotalSeconds < SyncThresholdInSeconds)
+                    {
+                        logger.LogDebug($"Waiting for Untis to create all files.");
+                        await Task.Delay(TimeSpan.FromSeconds(1));
+                    }
                 }
 
                 var events = await OnFilesChanged();
@@ -109,6 +117,7 @@ namespace UntisExportService.Core.Inputs
             finally
             {
                 isExportRunning = false;
+                lastTrigger = null;
             }
         }
     }
