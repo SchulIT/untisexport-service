@@ -8,6 +8,8 @@ namespace UntisExportService.Core.Settings.Inputs.Timetable
 
         bool UseWeeks { get; }
 
+        bool OnlyLastPeriod { get; }
+
         List<string> Subjects { get; }
 
         List<string> Grades { get; }

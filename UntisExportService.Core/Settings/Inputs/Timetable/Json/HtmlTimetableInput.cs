@@ -22,5 +22,8 @@ namespace UntisExportService.Core.Settings.Inputs.Timetable.Json
 
         [JsonProperty("grades")]
         public List<string> Grades { get; set; } = new List<string>();
+
+        [JsonProperty("only_last_period")]
+        public bool OnlyLastPeriod { get; set; } = false;
     }
 }
