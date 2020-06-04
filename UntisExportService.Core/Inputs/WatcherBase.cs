@@ -89,10 +89,12 @@ namespace UntisExportService.Core.Inputs
                 if (SyncThresholdInSeconds > 0)
                 {
                     var elapsed = DateTime.Now - lastTrigger.Value;
-                    if(elapsed.TotalSeconds < SyncThresholdInSeconds)
+
+                    while (elapsed.TotalSeconds < SyncThresholdInSeconds)
                     {
                         logger.LogDebug($"Waiting for Untis to create all files.");
                         await Task.Delay(TimeSpan.FromSeconds(1));
+                        elapsed = DateTime.Now - lastTrigger.Value;
                     }
                 }
 
@@ -109,16 +111,20 @@ namespace UntisExportService.Core.Inputs
                     logger.LogDebug($"Publish event of type {@event.GetType()} to eventbus.");
                     eventBus.Publish(@event);
                 }
+
+                isExportRunning = false;
+                lastTrigger = null;
             }
             catch (Exception e)
             {
                 logger.LogError(e, "Something went terribly wrong.");
-            }
-            finally
-            {
+
                 isExportRunning = false;
                 lastTrigger = null;
             }
+            /**
+             * CAUTION with finally-Part here: there is a return statement inside try
+             */
         }
 
 

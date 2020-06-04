@@ -43,6 +43,7 @@ namespace UntisExportService.Core.FileSystem
                 IncludeSubdirectories = true
             };
 
+            watcher.Created += OnFileSystemWatcherChanged;
             watcher.Changed += OnFileSystemWatcherChanged;
             watcher.Renamed += OnFileSystemWatcherRenamed;
             watcher.EnableRaisingEvents = false;
