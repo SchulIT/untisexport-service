@@ -9,12 +9,10 @@ namespace UntisExportService.WindowsService
     public class Worker : BackgroundService
     {
         private readonly IExportService exportService;
-        private readonly ILogger<Worker> logger;
 
         public Worker(IExportService exportService, ILogger<Worker> logger)
         {
             this.exportService = exportService;
-            this.logger = logger;
         }
         
         public override Task StartAsync(CancellationToken cancellationToken)
