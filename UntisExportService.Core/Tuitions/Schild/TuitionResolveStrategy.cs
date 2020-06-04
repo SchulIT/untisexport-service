@@ -1,10 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using SchulIT.SchildExport;
 using SchulIT.SchildExport.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UntisExportService.Core.External.Schild;
 using UntisExportService.Core.Settings.Tuitions;
 
 namespace UntisExportService.Core.Tuitions.Schild
@@ -25,12 +24,12 @@ namespace UntisExportService.Core.Tuitions.Schild
         /// </summary>
         private readonly Dictionary<string, List<TuitionStudyGroupTuple>> tuitions = new Dictionary<string, List<TuitionStudyGroupTuple>>();
 
-        private readonly IExporter schildExporter;
+        private readonly ISchildAdapter schildAdapter;
         private readonly ILogger<TuitionResolveStrategy> logger;
 
-        public TuitionResolveStrategy(IExporter schildExporter, ILogger<TuitionResolveStrategy> logger)
+        public TuitionResolveStrategy(ISchildAdapter schildAdapter, ILogger<TuitionResolveStrategy> logger)
         {
-            this.schildExporter = schildExporter;
+            this.schildAdapter = schildAdapter;
             this.logger = logger;
         }
 
@@ -43,7 +42,7 @@ namespace UntisExportService.Core.Tuitions.Schild
 
             try
             {
-                schildExporter.Configure(inputSetting.ConnectionString, false);
+                var schildExporter = schildAdapter.GetExporter();
                 var schoolInfoTask = schildExporter.GetSchoolInfoAsync();
                 schoolInfoTask.Wait();
                 var schoolInfo = schoolInfoTask.Result;

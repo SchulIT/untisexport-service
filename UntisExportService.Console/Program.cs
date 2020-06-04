@@ -8,13 +8,8 @@ using SchulIT.IccImport;
 using SchulIT.SchildExport;
 using SchulIT.UntisExport;
 using UntisExportService.Core;
+using UntisExportService.Core.External.Schild;
 using UntisExportService.Core.FileSystem;
-using UntisExportService.Core.Inputs;
-using UntisExportService.Core.Inputs.Exams;
-using UntisExportService.Core.Inputs.Substitutions;
-using UntisExportService.Core.Inputs.Supervisions;
-using UntisExportService.Core.Inputs.Timetable;
-using UntisExportService.Core.Inputs.Tuitions;
 using UntisExportService.Core.Outputs;
 using UntisExportService.Core.Outputs.Icc;
 using UntisExportService.Core.Outputs.Json;
@@ -68,6 +63,7 @@ namespace UntisExportService.Console
 
             // Register external dependencies
             builder.Register(c => new EventBusConfiguration { ThrowSubscriberException = true }).As<IEventBusConfiguration>().SingleInstance();
+            builder.RegisterType<SchildAdapter>().As<ISchildAdapter>().SingleInstance();
             builder.RegisterType<EventBus>().As<IEventBus>().SingleInstance();
             builder.RegisterType<Exporter>().As<IExporter>().SingleInstance();
             builder.RegisterType<IccImporter>().As<IIccImporter>().SingleInstance();

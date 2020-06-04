@@ -17,6 +17,7 @@ To configure the service or console, a `settings.json` file needs to be created.
         "tuitions": null
     },
     "outputs": [ ],
+    "external": [ ],
     "tuition_resolver": { }
 }
 ```
@@ -240,6 +241,24 @@ You can also import the entities to the [ICC](https://github.com/schulit/icc):
 * `timetable_periods` contains a dictionary which resolves the period names specified in Untis to the `external ID` property of the corresponding ICC period.
 * `week_mapping` contains information about the week mapping. The keys in the `weeks` dictionary are the week numbers and the values are the ICC week keys. If weeks are only computed by the week number, set the option `use_week_modulo` to `true`. Otherwise you need to specify all weeks and their corresponding week type in the ICC. 
 
+## External services
+
+Sometimes you need to use external services such as a school management program which holds information about tuitions and students. In most cases, a library or service is used to retrieve data from those programs. To be able to use this program data in multiple resolving situtations, you need to configure the service in the `external` section. 
+
+### SchILD NRW
+
+In order to use SchILD NRW, you must configure it as follows:
+
+```json
+{
+    "type": "schild",
+    "connection_string": "your_connection_string"
+}
+```
+
+* `type` must be `schild`
+* `connection_string` must be a valid connection string used by the [underlying library](https://github.com/schulit/schildexport) to connect to SchILD
+
 ## Tuition Resolver
 
 A tuition resolver is needed in order to match Untis study groups and tuitions with the ones online (e.g. ICC). 
@@ -248,14 +267,14 @@ A tuition resolver is needed in order to match Untis study groups and tuitions w
 
 The SchILD NRW resolver is used in case tuitions come from this program.
 
+**Important:** You need a SchILD service in the `external` section (see above).
+
 ```json
 {
     "type": "schild",
-    "connection_string": "",
     "grades_with_course_names_as_subject": [ "EF", "Q1", "Q2" ]
 }
 ```
 
 * `type` must be `schild`
-* `connection_string` must be a valid connection string used by the [underlying library](https://github.com/schulit/schildexport) to connect to SchILD
 * `grades_with_course_names_as_subject` is used to specify grades which use course names as subjects in Untis (e.g. M-LK1 is a subject in Untis, but the actual subject is M)

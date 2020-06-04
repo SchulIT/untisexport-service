@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UntisExportService.Core.Settings.External;
 using UntisExportService.Core.Settings.Outputs;
 using UntisExportService.Core.Settings.Tuitions;
 
@@ -15,5 +16,7 @@ namespace UntisExportService.Core.Settings
         ITuitionResolver Tuition { get; }
 
         IList<IOutput> Outputs { get; }
+
+        IList<IExternal> ExternalServices { get; }
     }
 }
