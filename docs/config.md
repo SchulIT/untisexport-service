@@ -272,9 +272,9 @@ The SchILD NRW resolver is used in case tuitions come from this program.
 ```json
 {
     "type": "schild",
-    "grades_with_course_names_as_subject": [ "EF", "Q1", "Q2" ]
+    "grades_with_coursename_as_subject": [ "EF", "Q1", "Q2" ]
 }
 ```
 
 * `type` must be `schild`
-* `grades_with_course_names_as_subject` is used to specify grades which use course names as subjects in Untis (e.g. M-LK1 is a subject in Untis, but the actual subject is M)
+* `grades_with_coursename_as_subject` is used to specify grades which use course names as subjects in Untis (e.g. M-LK1 is a subject in Untis, but the actual subject is M)
