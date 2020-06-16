@@ -19,5 +19,11 @@ namespace UntisExportService.Core.Settings.Outputs.Json
 
         [JsonProperty("supervision_period")]
         public string SupervisionPeriod { get; set; } = null;
+
+        [JsonProperty("name_as_id_pattern")]
+        public string SetNameAsIdPattern { get; set; } = null;
+
+        [JsonProperty("no_students_pattern")]
+        public string SetNoStudentsPattern { get; set; } = null;
     }
 }

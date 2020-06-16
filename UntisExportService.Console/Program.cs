@@ -8,6 +8,7 @@ using SchulIT.IccImport;
 using SchulIT.SchildExport;
 using SchulIT.UntisExport;
 using UntisExportService.Core;
+using UntisExportService.Core.ExamWriters;
 using UntisExportService.Core.External.Schild;
 using UntisExportService.Core.FileSystem;
 using UntisExportService.Core.Outputs;
@@ -51,6 +52,12 @@ namespace UntisExportService.Console
             // Register tuitions
             builder.RegisterType<TuitionResolver>().As<ITuitionResolver>().SingleInstance();
             builder.RegisterAssemblyTypes(typeof(ITuitionResolveStrategy).Assembly)
+                .Where(x => !x.Name.StartsWith("Abstract") && x.Name.EndsWith("Strategy"))
+                .AsImplementedInterfaces();
+
+            // Register exam writers
+            builder.RegisterType<ExamWritersResolver>().As<IExamWritersResolver>().SingleInstance();
+            builder.RegisterAssemblyTypes(typeof(IExamWritersResolveStrategy).Assembly)
                 .Where(x => !x.Name.StartsWith("Abstract") && x.Name.EndsWith("Strategy"))
                 .AsImplementedInterfaces();
 

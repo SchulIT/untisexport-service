@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using UntisExportService.Core.Settings.ExamWriters;
 using UntisExportService.Core.Settings.External;
 using UntisExportService.Core.Settings.Outputs;
 using UntisExportService.Core.Settings.Tuitions;
@@ -25,5 +26,8 @@ namespace UntisExportService.Core.Settings.Json
 
         [JsonProperty("external")]
         public IList<IExternal> ExternalServices { get; set; }
+
+        [JsonProperty("exam_writers_resolver")]
+        public IExamWritersResolver ExamWriters { get; set; }
     }
 }

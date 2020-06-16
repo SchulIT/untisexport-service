@@ -3,7 +3,6 @@ using SchulIT.SchildExport.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UntisExportService.Core.Extensions;
 using UntisExportService.Core.External.Schild;
 using UntisExportService.Core.Settings.Tuitions;
 
@@ -15,7 +14,7 @@ namespace UntisExportService.Core.Tuitions.Schild
         /// <summary>
         /// All grade study groups
         /// </summary>
-        private readonly Dictionary<string, StudyGroup> gradeStudyGroups = new Dictionary<string, StudyGroup>();
+        private readonly Dictionary<string, StudyGroup> gradeStudyGroupsCache = new Dictionary<string, StudyGroup>();
 
         /// <summary>
         /// All tuitions
@@ -23,7 +22,7 @@ namespace UntisExportService.Core.Tuitions.Schild
         /// Key 1: Grade
         /// Key 2: Subject
         /// </summary>
-        private readonly Dictionary<string, List<TuitionStudyGroupTuple>> tuitions = new Dictionary<string, List<TuitionStudyGroupTuple>>();
+        private readonly Dictionary<string, List<TuitionStudyGroupTuple>> tuitionsCache = new Dictionary<string, List<TuitionStudyGroupTuple>>();
 
         private readonly ISchildAdapter schildAdapter;
         private readonly ILogger<TuitionResolveStrategy> logger;
@@ -36,8 +35,8 @@ namespace UntisExportService.Core.Tuitions.Schild
 
         public override void Initialize(ISchildTuitionResolver inputSetting)
         {
-            gradeStudyGroups.Clear();
-            tuitions.Clear();
+            gradeStudyGroupsCache.Clear();
+            tuitionsCache.Clear();
 
             logger.LogDebug("Initialize SchILD exporter...");
 
@@ -50,66 +49,18 @@ namespace UntisExportService.Core.Tuitions.Schild
 
                 logger.LogInformation($"Current academic year: {schoolInfo.CurrentYear} - section {schoolInfo.CurrentSection}");
 
-                var tuitionsTask = schildExporter.GetTuitionsAsync(Array.Empty<Student>(), schoolInfo.CurrentYear.Value, schoolInfo.CurrentSection.Value);
-                tuitionsTask.Wait();
-                var tuitions = tuitionsTask.Result;
+                var tuitions = schildAdapter.LoadTuitions(schoolInfo.CurrentYear.Value, schoolInfo.CurrentSection.Value);
 
-                logger.LogInformation($"Got {tuitions.Count} tuitions from SchILD");
-
-                var studyGroupsTask = schildExporter.GetStudyGroupsAsync(Array.Empty<Student>(), schoolInfo.CurrentYear.Value, schoolInfo.CurrentSection.Value);
-                studyGroupsTask.Wait();
-                var studyGroups = studyGroupsTask.Result;
-
-                logger.LogInformation($"Got {studyGroups.Count} studygroups from SchILD");
-
-                // TODO: Optimize this algo
-                foreach(var tuition in tuitions.Where(x => x.StudyGroupRef != null && x.SubjectRef != null))
+                foreach(var kv in tuitions)
                 {
-                    var studyGroup = studyGroups.FirstOrDefault(x => x.Id == tuition.StudyGroupRef.Id && x.Name == tuition.StudyGroupRef.Name);
-
-                    if(studyGroup == null)
-                    {
-                        logger.LogDebug($"Studygroup for tuition with StudyGroupRef.ID={tuition.StudyGroupRef.Id} and StudyGroupRef.Name={tuition.StudyGroupRef.Name} was not found. Ignoring.");
-                        continue;
-                    }
-
-                    foreach (var grade in studyGroup.Grades)
-                    {
-                        if (this.tuitions.ContainsKey(grade.Name) != true)
-                        {
-                            this.tuitions.Add(grade.Name, new List<TuitionStudyGroupTuple>());
-                        }
-
-                        var subject = tuition.SubjectRef.Abbreviation;
-
-                        if (inputSetting.GradesWithCourseNameAsSubject.Contains(grade.Name))
-                        {
-                            subject = studyGroup.Name;
-                        }
-
-                        var courseRule = inputSetting.SubjectConversationRules.FirstOrDefault(x => x.IsCourse && x.ExternalSubject == studyGroup.Name && x.Grades.MatchesAny(grade.Name));
-
-                        if(courseRule != null)
-                        {
-                            logger.LogDebug($"Found a conversion rule for study group {studyGroup.Name} (grade {grade.Name}): Untis subject is {courseRule.UntisSubject}");
-                            subject = courseRule.UntisSubject;
-                        }
-
-                        var subjectRule = inputSetting.SubjectConversationRules.FirstOrDefault(x => !x.IsCourse && x.ExternalSubject == tuition.SubjectRef.Abbreviation && x.Grades.MatchesAny(grade.Name));
-
-                        if(subjectRule != null)
-                        {
-                            logger.LogDebug($"Found a conversion rule for subject {tuition.SubjectRef.Abbreviation} (grade {grade.Name}): Untis subject is {subjectRule.UntisSubject}");
-                            subject = courseRule.UntisSubject;
-                        }
-
-                        this.tuitions[grade.Name].Add(new TuitionStudyGroupTuple(tuition, studyGroup, subject));
-                    }
+                    tuitionsCache.Add(kv.Key, kv.Value);
                 }
 
-                foreach (var studyGroup in studyGroups.Where(x => x.Type == StudyGroupType.Grade))
+                var studyGroups = schildAdapter.GetGradeStudyGroups(schoolInfo.CurrentYear.Value, schoolInfo.CurrentSection.Value);
+
+                foreach(var kv in studyGroups)
                 {
-                    gradeStudyGroups.Add(studyGroup.Name, studyGroup);
+                    gradeStudyGroupsCache.Add(kv.Key, kv.Value);
                 }
             }
             catch (Exception e)
@@ -130,38 +81,12 @@ namespace UntisExportService.Core.Tuitions.Schild
                 return studyGroup.Name;
             }
 
-            var grades = studyGroup.Grades.Select(x => x.Name).Distinct();
-            return string.Join("-", studyGroup.Grades.Select(x => x.Name).Distinct().OrderBy(x => x));
-        }
-
-        /// <summary>
-        /// TODO: Make this configurable
-        /// </summary>
-        /// <param name="studyGroup"></param>
-        /// <returns></returns>
-        private string GetStudyGroupId(StudyGroup studyGroup)
-        {
-            if (studyGroup.Type == StudyGroupType.Course)
-            {
-                return studyGroup.Id.ToString();
-            }
-
-            return GetStudyGroupName(studyGroup);
+            return GetStudyGroupId(studyGroup);
         }
 
         public override string ResolveStudyGroup(string grade)
         {
-            return gradeStudyGroups.ContainsKey(grade) ? GetStudyGroupId(gradeStudyGroups[grade]) : null;
-        }
-
-        private string GetStudyGroupId(StudyGroupRef studyGroupRef)
-        {
-            if (studyGroupRef?.Id != null)
-            {
-                return studyGroupRef.Id.ToString();
-            }
-
-            return studyGroupRef.Name;
+            return gradeStudyGroupsCache.ContainsKey(grade) ? GetStudyGroupId(gradeStudyGroupsCache[grade]) : null;
         }
 
         public override string ResolveStudyGroup(string grade, string subject, string teacher)
@@ -172,13 +97,13 @@ namespace UntisExportService.Core.Tuitions.Schild
                 return null;
             }
 
-            if (!tuitions.ContainsKey(grade))
+            if (!tuitionsCache.ContainsKey(grade))
             {
                 logger.LogDebug($"Grade {grade} does not exist.");
                 return null;
             }
 
-            var candidates = tuitions[grade].Where(x => x.Subject == subject);
+            var candidates = tuitionsCache[grade].Where(x => x.Subject == subject);
 
             if (!candidates.Any())
             {
@@ -188,7 +113,7 @@ namespace UntisExportService.Core.Tuitions.Schild
 
             if (candidates.Count() == 1)
             {
-                return GetStudyGroupId(candidates.First().Tuition.StudyGroupRef);
+                return GetStudyGroupId(candidates.First().StudyGroup);
             }
 
             var teachers = candidates.Select(x => x.Tuition.TeacherRef.Acronym).ToList();
@@ -205,7 +130,7 @@ namespace UntisExportService.Core.Tuitions.Schild
             {
                 if (candidate.Tuition.TeacherRef.Acronym == teacher)
                 {
-                    return GetTuitionId(candidate.Tuition);
+                    return GetTuitionId(candidate.Tuition, candidate.StudyGroup);
                 }
             }
 
@@ -221,13 +146,13 @@ namespace UntisExportService.Core.Tuitions.Schild
                 return null;
             }
 
-            if(!tuitions.ContainsKey(grade))
+            if(!tuitionsCache.ContainsKey(grade))
             {
                 logger.LogDebug($"Grade {grade} does not exist.");
                 return null;
             }
 
-            var candidates = tuitions[grade].Where(x => x.Subject == subject);
+            var candidates = tuitionsCache[grade].Where(x => x.Subject == subject);
 
             if(!candidates.Any())
             {
@@ -237,7 +162,7 @@ namespace UntisExportService.Core.Tuitions.Schild
 
             if(candidates.Count() == 1)
             {
-                return GetTuitionId(candidates.First().Tuition);
+                return GetTuitionId(candidates.First().Tuition, candidates.First().StudyGroup);
             }
 
             if(string.IsNullOrEmpty(teacher))
@@ -250,7 +175,7 @@ namespace UntisExportService.Core.Tuitions.Schild
             {
                 if(candidate.Tuition.TeacherRef.Acronym == teacher)
                 {
-                    return GetTuitionId(candidate.Tuition);
+                    return GetTuitionId(candidate.Tuition, candidate.StudyGroup);
                 }
             }
 
@@ -258,26 +183,27 @@ namespace UntisExportService.Core.Tuitions.Schild
             return null;
         }
 
-        private string GetTuitionId(Tuition tuition)
+        private string GetStudyGroupId(StudyGroup studyGroup)
         {
-            if (tuition.StudyGroupRef?.Id != null)
+            var grades = studyGroup.Grades.Select(x => x.Name).Distinct().OrderBy(x => x);
+            var gradesString = string.Join("-", grades);
+
+            if (studyGroup.Type == StudyGroupType.Course)
             {
-                return tuition.StudyGroupRef.Id.ToString();
+                return $"{gradesString}-{studyGroup.Name}";
+            }
+
+            return gradesString;
+        }
+
+        private string GetTuitionId(Tuition tuition, StudyGroup studyGroup)
+        {
+            if (studyGroup?.Id != null)
+            {
+                return GetStudyGroupId(studyGroup);
             }
 
             return $"{tuition.SubjectRef.Abbreviation}-{tuition.StudyGroupRef.Name}";
-        }
-
-        private class TuitionStudyGroupTuple : Tuple<Tuition, StudyGroup, string>
-        {
-            public Tuition Tuition { get { return Item1; } }
-
-            public StudyGroup StudyGroup { get { return Item2; } }
-
-            public string Subject { get { return Item3; } }
-
-            public TuitionStudyGroupTuple(Tuition tuition, StudyGroup studyGroup, string subject)
-                : base(tuition, studyGroup, subject) { }
         }
     }
 }

@@ -1,7 +1,13 @@
-﻿namespace UntisExportService.Core.Settings.External.Schild
+﻿using System.Collections.Generic;
+
+namespace UntisExportService.Core.Settings.External.Schild
 {
     public interface ISchildSettings : IExternal
     {
         string ConnectionString { get; }
+
+        List<string> GradesWithCourseNameAsSubject { get; }
+
+        List<UntisToExternalRule> SubjectConversationRules { get; }
     }
 }

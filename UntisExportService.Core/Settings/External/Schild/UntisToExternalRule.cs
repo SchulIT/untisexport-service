@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace UntisExportService.Core.Settings.Tuitions
+namespace UntisExportService.Core.Settings.External.Schild
 {
     public class UntisToExternalRule
     {

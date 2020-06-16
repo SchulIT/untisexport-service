@@ -2,11 +2,15 @@
 using SchulIT.IccImport;
 using SchulIT.IccImport.Models;
 using SchulIT.IccImport.Response;
+using SchulIT.SchildExport.Models;
+using SchulIT.UntisExport.Exams;
 using SchulIT.UntisExport.Substitutions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using UntisExportService.Core.ExamWriters;
 using UntisExportService.Core.Inputs.Exams;
 using UntisExportService.Core.Inputs.Rooms;
 using UntisExportService.Core.Inputs.Substitutions;
@@ -37,13 +41,15 @@ namespace UntisExportService.Core.Outputs.Icc
         public override bool CanHandleTuitions { get { return false; } }
 
         private readonly WeekMappingHelper weekMappingHelper;
+        private readonly IExamWritersResolver examWritersResolver;
         private readonly ITuitionResolver tuitionResolver;
         private readonly IIccImporter iccImporter;
         private readonly ILogger<IccOutputHandler> logger;
 
-        public IccOutputHandler(ITuitionResolver tuitionResolver, IIccImporter iccImporter, WeekMappingHelper weekMappingHelper, ILogger<IccOutputHandler> logger)
+        public IccOutputHandler(IExamWritersResolver examWritersResolver, ITuitionResolver tuitionResolver, IIccImporter iccImporter, WeekMappingHelper weekMappingHelper, ILogger<IccOutputHandler> logger)
         {
             this.weekMappingHelper = weekMappingHelper;
+            this.examWritersResolver = examWritersResolver;
             this.tuitionResolver = tuitionResolver;
             this.iccImporter = iccImporter;
             this.logger = logger;
@@ -74,16 +80,6 @@ namespace UntisExportService.Core.Outputs.Icc
             // TODO: Store response in file
 
             return Task.CompletedTask;
-        }
-
-        private string GetOrComputeId(int? id)
-        {
-            if(id != null)
-            {
-                return id.ToString();
-            }
-
-            return Guid.NewGuid().ToString();
         }
 
         private string ConvertObjectiveTypeToString(Absence.ObjectiveType type)
@@ -135,6 +131,22 @@ namespace UntisExportService.Core.Outputs.Icc
         {
             Configure(outputSettings);
             tuitionResolver.Initialize();
+            examWritersResolver.Initialize();
+
+            Regex regexUseNameAsId = null;
+            Regex regexNoStudents = null;
+
+            if(!string.IsNullOrEmpty(outputSettings.SetNameAsIdPattern))
+            {
+                regexUseNameAsId = new Regex(outputSettings.SetNameAsIdPattern);
+            }
+
+            if(!string.IsNullOrEmpty(outputSettings.SetNoStudentsPattern))
+            {
+                regexNoStudents = new Regex(outputSettings.SetNoStudentsPattern);
+            }
+
+            var examIds = new List<string>();
 
             var exams = @event.Exams.Select(exam =>
             {
@@ -157,18 +169,59 @@ namespace UntisExportService.Core.Outputs.Icc
                     }
                 }
 
+                var id = GetOrComputeId(exam);
+
+                if(regexUseNameAsId != null && regexUseNameAsId.IsMatch(exam.Name))
+                {
+                    id = exam.Name;
+                }
+
+                var students = new List<string>();
+
+                if(regexNoStudents == null || !regexNoStudents.IsMatch(exam.Name))
+                {
+                    var examWriters = new List<string>();
+
+                    foreach(var tuition in tuitions)
+                    {
+                        examWriters.AddRange(examWritersResolver.ResolveStudents(tuition, exam));
+                    }
+
+                    students = examWriters.Distinct().ToList();
+                }
+
+                var originalId = id;
+                var roomAdded = false;
+                var number = 1;
+                while(examIds.Contains(id))
+                {
+                    if (roomAdded == false && exam.Rooms.Count > 0)
+                    {
+                        id += exam.Rooms.First();
+                    }
+                    else
+                    {
+                        id = originalId + (number++);
+                    }
+                }
+
+                examIds.Add(id);
+
                 return new ExamData
                 {
-                    Id = GetOrComputeId(exam.Id), // TODO
+                    Id = id,
                     Date = exam.Date,
                     LessonStart = exam.LessonStart,
                     LessonEnd = exam.LessonEnd,
                     Description = exam.Remark,
                     Rooms = exam.Rooms.ToList(),
                     Supervisions = exam.Supervisions.ToList(),
-                    Tuitions = tuitions
+                    Tuitions = tuitions,
+                    Students = students
                 };
             });
+
+
 
             var response = await iccImporter.ImportExamsAsync(exams.ToList());
             await HandleResponseAsync(response);
@@ -275,7 +328,7 @@ namespace UntisExportService.Core.Outputs.Icc
 
                 return new SubstitutionData
                 {
-                    Id = GetOrComputeId(substitution.Id),
+                    Id = substitution.Id.ToString(),
                     Date = substitution.Date,
                     LessonStart = substitution.LessonStart + (substitution.IsSupervision ? 1 : 0), // advance start lesson by 1 if it is a supervision
                     LessonEnd = substitution.LessonEnd,
@@ -339,7 +392,7 @@ namespace UntisExportService.Core.Outputs.Icc
                 {
                     supervisions.Add(new TimetableSupervisionData
                     {
-                        Id = GetOrComputeId(null),
+                        Id = Guid.NewGuid().ToString(),
                         Lesson = supervision.Lesson,
                         Day = supervision.WeekDay,
                         Location = supervision.Location,
@@ -402,7 +455,6 @@ namespace UntisExportService.Core.Outputs.Icc
                             {
                                 var data = new TimetableLessonData
                                 {
-                                    Id = GetOrComputeId(null),
                                     Tuition = tuition,
                                     Lesson = lesson.LessonStart + i,
                                     IsDoubleLesson = false,
@@ -423,7 +475,6 @@ namespace UntisExportService.Core.Outputs.Icc
                         {
                             var data = new TimetableLessonData
                             {
-                                Id = GetOrComputeId(null),
                                 Tuition = tuition,
                                 Lesson = lesson.LessonStart,
                                 IsDoubleLesson = lesson.LessonStart != lesson.LessonEnd,
@@ -475,7 +526,7 @@ namespace UntisExportService.Core.Outputs.Icc
                 return;
             }
 
-            var response = await iccImporter.ImportTimetableLessonsAsync(period, lessons.Select(x => x.Value).Distinct().ToList());
+            var response = await iccImporter.ImportTimetableLessonsAsync(period, lessons.Select(x => { x.Value.Id = x.Key; return x.Value; }).Distinct().ToList());
             await HandleResponseAsync(response);
         }
 
@@ -492,6 +543,42 @@ namespace UntisExportService.Core.Outputs.Icc
             }
 
             return input;
+        }
+
+        private string GetStudyGroupId(StudyGroup studyGroup)
+        {
+            var grades = studyGroup.Grades.Select(x => x.Name).Distinct().OrderBy(x => x);
+            var gradesString = string.Join("-", grades);
+
+            if (studyGroup.Type == StudyGroupType.Course)
+            {
+                return $"{gradesString}-{studyGroup.Name}";
+            }
+
+            return gradesString;
+        }
+
+        private string GetTuitionId(Tuition tuition, StudyGroup studyGroup)
+        {
+            if (studyGroup?.Id != null)
+            {
+                return GetStudyGroupId(studyGroup);
+            }
+
+            return $"{tuition.SubjectRef.Abbreviation}-{tuition.StudyGroupRef.Name}";
+        }
+
+        private string GetOrComputeId(Exam exam)
+        {
+            if(exam.Id.HasValue)
+            {
+                return exam.Id.Value.ToString();
+            }
+
+            var gradesAsString = string.Join('-', exam.Grades.OrderBy(x => x));
+            var coursesAsString = string.Join('-', exam.Courses.OrderBy(x => x));
+
+            return $"{exam.Date:yyyy-MM-dd}-{gradesAsString}-{coursesAsString}-{exam.Name}";
         }
     }
 }

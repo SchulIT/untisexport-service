@@ -11,5 +11,9 @@ namespace UntisExportService.Core.Settings.Outputs
         IWeekMapping WeekMapping { get; }
 
         string SupervisionPeriod { get; }
+
+        string SetNameAsIdPattern { get; }
+
+        string SetNoStudentsPattern { get; }
     }
 }
