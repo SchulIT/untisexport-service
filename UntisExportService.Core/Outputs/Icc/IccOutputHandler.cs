@@ -434,13 +434,12 @@ namespace UntisExportService.Core.Outputs.Icc
             try
             {
                 foreach (var lesson in @event.Lessons)
-                {
+                { 
                     var tuition = tuitionResolver.ResolveTuition(lesson.Grade, lesson.Subject, lesson.Teacher);
 
                     if (tuition == null)
                     {
-                        logger.LogDebug($"Cannot resolve tuition with subject {lesson.Subject} for grade {lesson.Grade} and teacher {lesson.Teacher}. Skip lesson.");
-                        continue;
+                        logger.LogDebug($"Cannot resolve tuition with subject {lesson.Subject} for grade {lesson.Grade} and teacher {lesson.Teacher}. Make freestyle lesson.");
                     }
 
                     foreach (var week in lesson.Weeks)
@@ -463,7 +462,16 @@ namespace UntisExportService.Core.Outputs.Icc
                                     Week = week
                                 };
 
-                                var id = computeAddedLessonKey(lesson.Day, lesson.LessonStart + i, week, tuition);
+                                if (tuition == null)
+                                {
+                                    data.Subject = lesson.Subject;
+                                    if (lesson.Teacher != null)
+                                    {
+                                        data.Teachers.Add(lesson.Teacher);
+                                    }
+                                }
+
+                                var id = computeAddedLessonKey(lesson.Day, lesson.LessonStart + i, week, tuition ?? lesson.Subject );
 
                                 if (!lessons.ContainsKey(id))
                                 {
@@ -483,11 +491,20 @@ namespace UntisExportService.Core.Outputs.Icc
                                 Week = week
                             };
 
+                            if (tuition == null)
+                            {
+                                data.Subject = lesson.Subject;
+                                if (lesson.Teacher != null)
+                                {
+                                    data.Teachers.Add(lesson.Teacher);
+                                }
+                            }
+
                             if (data.IsDoubleLesson)
                             {
                                 // Check whether an existing lesson was generated because it was splitted 
-                                var id = computeAddedLessonKey(lesson.Day, lesson.LessonStart, week, tuition);
-                                var nextLessonId = computeAddedLessonKey(lesson.Day, lesson.LessonStart + 1, week, tuition);
+                                var id = computeAddedLessonKey(lesson.Day, lesson.LessonStart, week, tuition ?? lesson.Subject);
+                                var nextLessonId = computeAddedLessonKey(lesson.Day, lesson.LessonStart + 1, week, tuition ?? lesson.Subject);
 
                                 if (lessons.ContainsKey(id))
                                 {

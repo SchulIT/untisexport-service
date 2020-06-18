@@ -24,8 +24,8 @@
     <PackageReference Include="NaturalSort.Extension" Version="3.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Redbus" Version="1.0.8" />
-    <PackageReference Include="SchulIT.IccImport" Version="1.0.0-preview6" />
-    <PackageReference Include="SchulIT.SchildExport" Version="1.0.0-preview6-1" />
+    <PackageReference Include="SchulIT.IccImport" Version="1.0.0-preview7" />
+    <PackageReference Include="SchulIT.SchildExport" Version="1.0.0-preview7" />
     <PackageReference Include="SchulIT.UntisExport" Version="2.0.0-preview8" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
