@@ -47,10 +47,10 @@ namespace UntisExportService.Core.ExamWriters
             GetStrategy(settings)?.Initialize(settings);
         }
 
-        public List<string> ResolveStudents(string tuition, Exam exam)
+        public List<string> ResolveStudents(string tuition, Exam exam, string start, string end)
         {
             var settings = settingsService.Settings.ExamWriters;
-            return GetStrategy(settings)?.Resolve(tuition, exam);
+            return GetStrategy(settings)?.Resolve(tuition, exam, start, end);
         }
     }
 }

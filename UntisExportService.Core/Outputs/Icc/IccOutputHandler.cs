@@ -135,6 +135,9 @@ namespace UntisExportService.Core.Outputs.Icc
 
             Regex regexUseNameAsId = null;
             Regex regexNoStudents = null;
+            Regex regexStudentSubset = null;
+
+            var section = new List<Tuple<string, string>>();
 
             if(!string.IsNullOrEmpty(outputSettings.SetNameAsIdPattern))
             {
@@ -144,6 +147,11 @@ namespace UntisExportService.Core.Outputs.Icc
             if(!string.IsNullOrEmpty(outputSettings.SetNoStudentsPattern))
             {
                 regexNoStudents = new Regex(outputSettings.SetNoStudentsPattern);
+            }
+
+            if(!string.IsNullOrEmpty(outputSettings.StudentSubsetPattern))
+            {
+                regexStudentSubset = new Regex(outputSettings.StudentSubsetPattern);
             }
 
             var examIds = new List<string>();
@@ -182,12 +190,36 @@ namespace UntisExportService.Core.Outputs.Icc
                 {
                     var examWriters = new List<string>();
 
-                    foreach(var tuition in tuitions)
+                    if (regexStudentSubset != null && regexStudentSubset.IsMatch(exam.Name))
                     {
-                        examWriters.AddRange(examWritersResolver.ResolveStudents(tuition, exam));
+                        foreach (Match match in regexStudentSubset.Matches(exam.Name))
+                        {
+                            if (match.Groups.Count < 3)
+                            {
+                                logger.LogError($"Matching students subset failed as {match.Groups.Count} groups were matched, 3 expected.");
+                            }
+                            else
+                            {
+                                var start = match.Groups[1].Value;
+                                var end = match.Groups[2].Value;
+                                logger.LogDebug($"Only find students between {start} and {end}.");
+                                foreach (var tuition in tuitions)
+                                {
+                                    examWriters.AddRange(examWritersResolver.ResolveStudents(tuition, exam, start, end));
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (var tuition in tuitions)
+                        {
+                            examWriters.AddRange(examWritersResolver.ResolveStudents(tuition, exam, null, null));
+                        }
                     }
 
-                    students = examWriters.Distinct().ToList();
+                    examWriters = examWriters.Distinct().ToList();
+                    students.AddRange(examWriters);
                 }
 
                 var originalId = id;

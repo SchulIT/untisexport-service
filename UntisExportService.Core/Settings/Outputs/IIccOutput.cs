@@ -15,5 +15,7 @@ namespace UntisExportService.Core.Settings.Outputs
         string SetNameAsIdPattern { get; }
 
         string SetNoStudentsPattern { get; }
+
+        string StudentSubsetPattern { get; }
     }
 }

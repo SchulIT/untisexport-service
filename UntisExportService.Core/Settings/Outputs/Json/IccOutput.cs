@@ -25,5 +25,8 @@ namespace UntisExportService.Core.Settings.Outputs.Json
 
         [JsonProperty("no_students_pattern")]
         public string SetNoStudentsPattern { get; set; } = null;
+
+        [JsonProperty("student_subset_pattern")]
+        public string StudentSubsetPattern { get; set; } = null;
     }
 }

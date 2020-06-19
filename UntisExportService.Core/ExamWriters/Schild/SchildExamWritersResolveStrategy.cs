@@ -18,6 +18,7 @@ namespace UntisExportService.Core.ExamWriters.Schild
         /// Value: all tuitions of this section
         /// </summary>
         private readonly Dictionary<string, List<TuitionStudyGroupTuple>> tuitionCache = new Dictionary<string, List<TuitionStudyGroupTuple>>();
+        private readonly Dictionary<string, Student> studentCache = new Dictionary<string, Student>();
 
         private readonly ISchildAdapter schildAdapter;
         private readonly ILogger<SchildExamWritersResolveStrategy> logger;
@@ -55,6 +56,18 @@ namespace UntisExportService.Core.ExamWriters.Schild
                     }
                 }
             }
+
+            logger.LogDebug("Getting students from SchILD...");
+            var studentTask = schildAdapter.GetExporter().GetStudentsAsync();
+            studentTask.Wait();
+
+            foreach (var student in studentTask.Result)
+            {
+                if (!studentCache.ContainsKey(student.Id.ToString()))
+                {
+                    studentCache.Add(student.Id.ToString(), student);
+                }
+            }
         }
 
         private SchildSection GetSectionForDate(DateTime date)
@@ -70,7 +83,7 @@ namespace UntisExportService.Core.ExamWriters.Schild
             return null;
         } 
 
-        public List<string> Resolve(string tuition, Exam exam)
+        public List<string> Resolve(string tuition, Exam exam, string start, string end)
         {
             var date = exam.Date;
             var students = new List<string>();
@@ -100,11 +113,16 @@ namespace UntisExportService.Core.ExamWriters.Schild
 
             foreach(var membership in match.StudyGroup.Memberships)
             {
+                var student = studentCache.ContainsKey(membership.Student.Id.ToString()) ? studentCache[membership.Student.Id.ToString()] : null;
                 var candidate = settings.Rules.FirstOrDefault(x => x.Grades.Contains(membership.Grade) && x.Sections.Contains(section.Section) && x.Types.Contains(membership.Type));
 
                 if (candidate == null)
                 {
                     logger.LogError($"Did not find any rule for student {membership.Student.Id} (Grade: {membership.Grade}, Type: {membership.Type}, Section: {section.Section}. Ignore student.");
+                }
+                else if(!string.IsNullOrWhiteSpace(start) && !string.IsNullOrWhiteSpace(end) && student != null && (String.Compare(student.Lastname.ToUpper(), start.ToUpper()) < 0 || student.Lastname.ToUpper().Substring(0, end.Length) != end.ToUpper()))
+                {
+                    logger.LogDebug($"Ignore student with lastname {student.Lastname} because {start} <= {student.Lastname} <= {end} is not true.");
                 }
                 else
                 {

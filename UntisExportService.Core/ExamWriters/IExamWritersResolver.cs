@@ -7,6 +7,6 @@ namespace UntisExportService.Core.ExamWriters
     {
         void Initialize();
 
-        List<string> ResolveStudents(string tuition, Exam exam);
+        List<string> ResolveStudents(string tuition, Exam exam, string start, string end);
     }
 }

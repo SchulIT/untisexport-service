@@ -10,6 +10,6 @@ namespace UntisExportService.Core.ExamWriters
 
         void Initialize(Settings.ExamWriters.IExamWritersResolver inputSetting);
 
-        List<string> Resolve(string tuition, Exam exam);
+        List<string> Resolve(string tuition, Exam exam, string start, string end);
     }
 }
