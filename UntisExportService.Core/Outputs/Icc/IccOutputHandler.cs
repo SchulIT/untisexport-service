@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using SchulIT.IccImport;
 using SchulIT.IccImport.Models;
 using SchulIT.IccImport.Response;
@@ -65,19 +66,23 @@ namespace UntisExportService.Core.Outputs.Icc
         {
             if (response is ErrorResponse)
             {
-                logger.LogError($"Upload was not successful: {(response as ErrorResponse).Message}.");
+                logger.LogError($"Upload was not successful.");
+                logger.LogError(response.ResponseBody);
             }
             else if (response is ImportResponse)
             {
                 var importResponse = response as ImportResponse;
-                logger.LogInformation($"Import successful: {importResponse.AddedCount} items added, {importResponse.UpdatedCount} items updated and {importResponse.RemovedCount} items removed.");
+                logger.LogInformation($"Import successful: {importResponse.AddedCount} items added, {importResponse.UpdatedCount} items updated, {importResponse.RemovedCount} items removed and {importResponse.IgnoredEntities.Count} items ignored.");
+
+                if(importResponse.IgnoredEntities.Count > 0)
+                {
+                    logger.LogInformation(JsonConvert.SerializeObject(importResponse.IgnoredEntities));
+                }
             }
             else if (response is SuccessReponse)
             {
                 logger.LogInformation("Upload successful.");
             }
-
-            // TODO: Store response in file
 
             return Task.CompletedTask;
         }
