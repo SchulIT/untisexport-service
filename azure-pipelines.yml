@@ -17,10 +17,6 @@ variables:
   solution: 'UntisExportService.sln'
   buildConfiguration: 'Release'
 
-variables:
-  solution: 'ADConnectClient.sln'
-  buildConfiguration: 'Release'
-
 stages:
 - stage: build
   displayName: Build
