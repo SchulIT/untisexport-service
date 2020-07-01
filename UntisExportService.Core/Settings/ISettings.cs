@@ -8,8 +8,6 @@ namespace UntisExportService.Core.Settings
 {
     public interface ISettings
     {
-        bool IsDebugModeEnabled { get; }
-
         int SyncThresholdInSeconds { get; }
 
         IInputSettings Inputs { get; }

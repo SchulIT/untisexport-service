@@ -9,9 +9,6 @@ namespace UntisExportService.Core.Settings.Json
 {
     public class Settings : ISettings
     {
-        [JsonProperty("debug")]
-        public bool IsDebugModeEnabled { get; set; } = false;
-
         [JsonProperty("threshold")]
         public int SyncThresholdInSeconds { get; set; } = 2;
 
