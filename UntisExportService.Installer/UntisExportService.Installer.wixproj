@@ -55,6 +55,20 @@
       <HasService>False</HasService>
       <SourceDir>ConsoleSourceDir</SourceDir>
     </ProjectReference>
+    <ProjectReference Include="..\UntisExportService.Gui\UntisExportService.Gui.csproj">
+      <Name>UntisExportService.Gui</Name>
+      <Project>{bce5082f-84c5-4706-bd29-45df203e7161}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>GUI_INSTALLLOCATION</RefTargetDir>
+      <SourceComponentGroup>GuiSourceComponentGroup</SourceComponentGroup>
+      <TargetFrameworkIdentifier>netcoreapp3.1</TargetFrameworkIdentifier>
+      <Runtime>win-x64</Runtime>
+      <IsDotnetSDKProject>True</IsDotnetSDKProject>
+      <HasService>False</HasService>
+      <SourceDir>GuiSourceDir</SourceDir>
+    </ProjectReference>
     <ProjectReference Include="..\UntisExportService.WindowsService\UntisExportService.WindowsService.csproj">
       <Name>UntisExportService.WindowsService</Name>
       <Project>{4f68a87b-b1c1-49ad-b161-3e4e493401fa}</Project>
@@ -86,7 +100,7 @@
     <Error Text="The WiX Toolset v3.11 (or newer) build tools must be installed to build this project. To download the WiX Toolset, see http://wixtoolset.org/releases/" />
   </Target>
   <Target Name="BeforeBuild">
-    <Exec WorkingDirectory="%(ProjectReference.RootDir)%(ProjectReference.Directory)" Command="dotnet publish -c $(Configuration) -r %(ProjectReference.Runtime) /p:PublishTrimmed=true" Condition="'%(ProjectReference.IsDotnetSDKProject)' == 'True'" />
+    <Exec WorkingDirectory="%(ProjectReference.RootDir)%(ProjectReference.Directory)" Command="dotnet publish -c $(Configuration) -r %(ProjectReference.Runtime)" Condition="'%(ProjectReference.IsDotnetSDKProject)' == 'True'" />
     <ItemGroup>
       <LinkerBindInputPaths Include="%(ProjectReference.RootDir)%(ProjectReference.Directory)bin\$(Configuration)\%(ProjectReference.TargetFrameworkIdentifier)\%(ProjectReference.Runtime)\publish" />
     </ItemGroup>

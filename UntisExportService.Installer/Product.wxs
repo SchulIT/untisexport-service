@@ -14,10 +14,11 @@
     <!-- APPLICATION DIRECTORY -->
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFiles64Folder">
-        <Directory Id="APPLICATIONFOLDER" Name="SchulIT">
-          <Directory Id="INSTALLLOCATION" Name="UntisExportService">
+        <Directory Id="VENDORFOLDER" Name="SchulIT">
+          <Directory Id="APPLICATIONFOLDER" Name="UntisExportService">
             <Directory Id="SERVICE_INSTALLLOCATION" Name="Service" />
             <Directory Id="CONSOLE_INSTALLLOCATION" Name="Console" />
+            <Directory Id="GUI_INSTALLLOCATION" Name="GUI" />
           </Directory>
         </Directory>
       </Directory>
@@ -26,9 +27,15 @@
       <Directory Id="ProgramMenuFolder">
         <Directory Id="MyShortCutsDir" Name="UntisExportService">
           <Component Id="ConsoleShortCutComponent" Guid="E64C8002-6CCC-4023-AFF6-940BD0B75E15">
-            <Shortcut Id="ConsoleShortCut" Name="UntisExportService Console" Target="[INSTALLLOCATION]\Console\UntisExportService.Console.exe" Icon="icon.ico" />
+            <Shortcut Id="ConsoleShortCut" Name="Untis Export Console" Target="[CONSOLE_INSTALLLOCATION]\UntisExportService.Console.exe" Icon="icon.ico" />
             <RemoveFolder Id="RemoveConsoleShortCut" On="uninstall"/>
             <RegistryValue Root="HKCU" Key="Software\SchulIT\UntisExportService\Console" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+          </Component>
+        
+          <Component Id="GuiShortCutComponent" Guid="9CF4C30C-C71F-456E-B3BA-866B17DBC353">
+            <Shortcut Id="GuiShortCut" Name="Untis Export" Target="[GUI_INSTALLLOCATION]\UntisExportService.Gui.exe" Icon="icon.ico" />
+            <RemoveFolder Id="RemoveGuiShortCut" On="uninstall"/>
+            <RegistryValue Root="HKCU" Key="Software\SchulIT\UntisExportService\Gui" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
           </Component>
         </Directory>
       </Directory>
@@ -45,6 +52,14 @@
         <ComponentRef Id="ConsoleShortCutComponent"/>
       </Feature>
     </Feature>
+    
+    <Feature Id="GuiFeature" Title="!(loc.FeatureGui)" Level="1">
+      <ComponentGroupRef Id="GuiSourceComponentGroup" />
+
+      <Feature Id="GuiShortcutFeature" Title="!(loc.FeatureShortcut)" Level="1">
+        <ComponentRef Id="GuiShortCutComponent"/>
+      </Feature>
+    </Feature>
 
     <!-- PREVENT DOWNGRADING -->
     <MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeImpossible)" />
@@ -52,11 +67,12 @@
     <UIRef Id="WixUI_Advanced" />
     <UIRef Id="WixUI_ErrorProgressText" />
 
-    <Property Id="ApplicationFolderName" Value="SchulIT" />
+    <Property Id="VendorFolderName" Value="SchulIT" />
+    <Property Id="ApplicationFolderName" Value="UntisExportService" />
     <Property Id="WixAppFolder" Value="WixPerMachineFolder" />
     <WixVariable Id="WixUISupportPerUser" Value="0" />
     <WixVariable Id="WixUILicenseRtf" Value="Eula.rtf" />
 
-    <SetDirectory Id="APPLICATIONFOLDER" Value="[ProgramFiles64Folder][ApplicationFolderName]">APPLICATIONFOLDER=""</SetDirectory>
+    <SetDirectory Id="APPLICATIONFOLDER" Value="[ProgramFiles64Folder][VendorFolderName]\[ApplicationFolderName]">APPLICATIONFOLDER=""</SetDirectory>
 	</Product>
 </Wix>

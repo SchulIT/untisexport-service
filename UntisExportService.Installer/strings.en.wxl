@@ -4,5 +4,6 @@
   <String Id="FeatureCommonLibraries">Common libraries</String>
   <String Id="FeatureService">Service</String>
   <String Id="FeatureConsole">Console</String>
+  <String Id="FeatureGui">GUI (only German)</String>
   <String Id="FeatureShortcut">Start menu shortcut</String>
 </WixLocalization>

@@ -3,6 +3,8 @@ using Microsoft.Extensions.Logging;
 using Redbus.Events;
 using Redbus.Interfaces;
 using System;
+using System.Linq;
+using System.Threading.Tasks;
 using UntisExportService.Core.Inputs;
 using UntisExportService.Core.Inputs.Exams;
 using UntisExportService.Core.Inputs.Rooms;
@@ -55,7 +57,7 @@ namespace UntisExportService.Core
             this.logger = logger;
         }
 
-        public void End()
+        public void Stop()
         {
             examWatcher.Stop();
             roomWatcher.Stop();
@@ -69,28 +71,53 @@ namespace UntisExportService.Core
 
         public void Start()
         {
+            Start(InputType.Exams, InputType.Rooms, InputType.Substitutions, InputType.Supervisions, InputType.Timetable, InputType.Tuitions);
+        }
+
+        public void Start(params InputType[] inputs)
+        {
             var settings = settingsService.Settings;
-
-            logger.LogDebug("Configure watchers...");
-            Configure(settings);
-
-            logger.LogDebug("Register events...");
-            RegisterEvents(settings);
 
             logger.LogDebug("Start watchers...");
 
-            examWatcher.Start();
-            roomWatcher.Start();
-            substitutionWatcher.Start();
-            supervisionWatcher.Start();
-            timetableWatcher.Start();
-            tuitionWatcher.Start();
+            if (inputs.Contains(InputType.Exams))
+            {
+                examWatcher.Start();
+            }
+
+            if (inputs.Contains(InputType.Rooms))
+            {
+                roomWatcher.Start();
+            }
+
+            if (inputs.Contains(InputType.Substitutions))
+            {
+                substitutionWatcher.Start();
+            }
+
+            if (inputs.Contains(InputType.Supervisions))
+            {
+                supervisionWatcher.Start();
+            }
+
+            if (inputs.Contains(InputType.Timetable))
+            {
+                timetableWatcher.Start();
+            }
+
+            if (inputs.Contains(InputType.Tuitions))
+            {
+                tuitionWatcher.Start();
+            }
 
             logger.LogInformation("Export service started.");
         }
 
-        private void Configure(ISettings settings)
+        public void Configure()
         {
+            logger.LogDebug("Configuring...");
+            var settings = settingsService.Settings;
+
             examWatcher.SyncThresholdInSeconds = settings.SyncThresholdInSeconds;
             examWatcher.Configure(settings.Inputs.Exams);
 
@@ -108,6 +135,37 @@ namespace UntisExportService.Core
 
             tuitionWatcher.SyncThresholdInSeconds = settings.SyncThresholdInSeconds;
             tuitionWatcher.Configure(settings.Inputs.Tuitions);
+            logger.LogDebug("Configuration completed.");
+
+            logger.LogDebug("Register events...");
+            RegisterEvents(settings);
+            logger.LogDebug("Events regsistration completed.");
+        }
+
+        public Task TriggerAsync(InputType type)
+        {
+            switch(type)
+            {
+                case InputType.Exams:
+                    return examWatcher.TriggerAsync();
+
+                case InputType.Rooms:
+                    return roomWatcher.TriggerAsync();
+
+                case InputType.Substitutions:
+                    return substitutionWatcher.TriggerAsync();
+
+                case InputType.Supervisions:
+                    return supervisionWatcher.TriggerAsync();
+
+                case InputType.Timetable:
+                    return timetableWatcher.TriggerAsync();
+
+                case InputType.Tuitions:
+                    return tuitionWatcher.TriggerAsync();
+            }
+
+            return Task.CompletedTask;
         }
 
         private void RegisterEvents(ISettings settings)

@@ -67,6 +67,32 @@ namespace UntisExportService.Core.Inputs
             return new EventBase[] { @event };
         }
 
+        private async Task RunAsync()
+        {
+            try
+            {
+                logger.LogInformation("Run export...");
+
+                var events = await OnFilesChanged();
+
+                if (events == null)
+                {
+                    logger.LogDebug("Result is null, do not publish to eventbus.");
+                    return;
+                }
+
+                foreach (var @event in events)
+                {
+                    logger.LogDebug($"Publish event of type {@event.GetType()} to eventbus.");
+                    eventBus.Publish(@event);
+                }
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Something went terribly wrong.");
+            }
+        }
+
         private async void OnFilesChanged(IFileSystemWatcher sender, OnChangedEventArgs args)
         {
             try
@@ -98,19 +124,7 @@ namespace UntisExportService.Core.Inputs
                     }
                 }
 
-                var events = await OnFilesChanged();
-
-                if (events == null)
-                {
-                    logger.LogDebug("Result is null, do not publish to eventbus.");
-                    return;
-                }
-
-                foreach (var @event in events)
-                {
-                    logger.LogDebug($"Publish event of type {@event.GetType()} to eventbus.");
-                    eventBus.Publish(@event);
-                }
+                await RunAsync();
 
                 isExportRunning = false;
                 lastTrigger = null;
@@ -127,6 +141,9 @@ namespace UntisExportService.Core.Inputs
              */
         }
 
-
+        public Task TriggerAsync()
+        {
+            return RunAsync();
+        }
     }
 }

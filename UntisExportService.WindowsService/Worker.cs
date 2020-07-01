@@ -24,7 +24,7 @@ namespace UntisExportService.WindowsService
 
         public override Task StopAsync(CancellationToken cancellationToken)
         {
-            exportService.End();
+            exportService.Stop();
 
             return Task.CompletedTask;
         }

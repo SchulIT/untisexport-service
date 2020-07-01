@@ -1,4 +1,6 @@
-﻿namespace UntisExportService.Core.Inputs
+﻿using System.Threading.Tasks;
+
+namespace UntisExportService.Core.Inputs
 {
     /// <summary>
     /// Interface for all watchers (can and should be used for DI)
@@ -8,6 +10,8 @@
         int SyncThresholdInSeconds { get; set; }
 
         void Configure(T settings);
+
+        Task TriggerAsync();
 
         void Start();
 

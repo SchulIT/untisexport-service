@@ -9,6 +9,7 @@ using SchulIT.UntisExport.Substitutions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UntisExportService.Core.ExamWriters;
@@ -449,12 +450,11 @@ namespace UntisExportService.Core.Outputs.Icc
             Configure(outputSettings);
             tuitionResolver.Initialize();
 
-            if(outputSettings.TimetablePeriodMapping == null)
+            if (outputSettings.TimetablePeriodMapping == null)
             {
                 logger.LogError("TimetablePeriodMapping is null. Do not upload timetable.");
                 return;
             }
-
 
             var period = outputSettings.TimetablePeriodMapping.ContainsKey(@event.Period) ? outputSettings.TimetablePeriodMapping[@event.Period] : null;
 
@@ -466,7 +466,7 @@ namespace UntisExportService.Core.Outputs.Icc
 
             var lessons = new Dictionary<string, TimetableLessonData>();
 
-            string computeAddedLessonKey(int day, int lesson, string week, string tuition) => $"{day}-{lesson}-{week}-{tuition}";
+            string computeAddedLessonKey(int day, int lesson, string week, string tuition, string room) => $"{day}-{lesson}-{week}-{tuition}-{room}";
 
             try
             {
@@ -499,20 +499,28 @@ namespace UntisExportService.Core.Outputs.Icc
                                     Week = week
                                 };
 
+                                if (!string.IsNullOrEmpty(lesson.Teacher))
+                                {
+                                    data.Teachers.Add(lesson.Teacher);
+                                }
+
                                 if (tuition == null)
                                 {
                                     data.Subject = lesson.Subject;
-                                    if (lesson.Teacher != null)
-                                    {
-                                        data.Teachers.Add(lesson.Teacher);
-                                    }
                                 }
 
-                                var id = computeAddedLessonKey(lesson.Day, lesson.LessonStart + i, week, tuition ?? lesson.Subject );
+                                var id = computeAddedLessonKey(lesson.Day, lesson.LessonStart + i, week, tuition ?? lesson.Subject, lesson.Room);
 
                                 if (!lessons.ContainsKey(id))
                                 {
                                     lessons.Add(id, data);
+                                }
+                                else
+                                {
+                                    if (!string.IsNullOrEmpty(lesson.Teacher) && lessons[id].Teachers.Contains(lesson.Teacher))
+                                    {
+                                        lessons[id].Teachers.Add(lesson.Teacher);
+                                    }
                                 }
                             }
                         }
@@ -528,21 +536,43 @@ namespace UntisExportService.Core.Outputs.Icc
                                 Week = week
                             };
 
+                            if (!string.IsNullOrEmpty(lesson.Teacher))
+                            {
+                                data.Teachers.Add(lesson.Teacher);
+                            }
+
                             if (tuition == null)
                             {
                                 data.Subject = lesson.Subject;
-                                if (lesson.Teacher != null)
+                            }
+
+                            var id = computeAddedLessonKey(lesson.Day, lesson.LessonStart, week, tuition ?? lesson.Subject, lesson.Room);
+                            var nextLessonId = computeAddedLessonKey(lesson.Day, lesson.LessonStart + 1, week, tuition ?? lesson.Subject, lesson.Room);
+
+                            if (lessons.ContainsKey(id))
+                            {
+                                foreach (var teacher in lessons[id].Teachers)
                                 {
-                                    data.Teachers.Add(lesson.Teacher);
+                                    if (!data.Teachers.Contains(teacher))
+                                    {
+                                        data.Teachers.Add(teacher);
+                                    }
+                                }
+                            }
+
+                            if (lessons.ContainsKey(nextLessonId))
+                            {
+                                foreach (var teacher in lessons[nextLessonId].Teachers)
+                                {
+                                    if (!data.Teachers.Contains(teacher))
+                                    {
+                                        data.Teachers.Add(teacher);
+                                    }
                                 }
                             }
 
                             if (data.IsDoubleLesson)
                             {
-                                // Check whether an existing lesson was generated because it was splitted 
-                                var id = computeAddedLessonKey(lesson.Day, lesson.LessonStart, week, tuition ?? lesson.Subject);
-                                var nextLessonId = computeAddedLessonKey(lesson.Day, lesson.LessonStart + 1, week, tuition ?? lesson.Subject);
-
                                 if (lessons.ContainsKey(id))
                                 {
                                     lessons[id] = data;
@@ -561,14 +591,13 @@ namespace UntisExportService.Core.Outputs.Icc
                                     lessons.Add(nextLessonId, data);
                                 }
                             }
-                            else
+                            else if (!lessons.ContainsKey(id))
                             {
-                                var id = computeAddedLessonKey(lesson.Day, lesson.LessonStart, week, tuition);
-
-                                if (!lessons.ContainsKey(id))
-                                {
-                                    lessons.Add(id, data);
-                                }
+                                lessons.Add(id, data);
+                            }
+                            else if (lessons.ContainsKey(id))
+                            {
+                                lessons[id] = data;
                             }
                         }
                     }
