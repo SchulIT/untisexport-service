@@ -8,6 +8,6 @@ namespace UntisExportService.Core.Settings.External.Schild
 
         List<string> GradesWithCourseNameAsSubject { get; }
 
-        List<UntisToExternalRule> SubjectConversationRules { get; }
+        List<UntisToSchildRule> SubjectConversationRules { get; }
     }
 }

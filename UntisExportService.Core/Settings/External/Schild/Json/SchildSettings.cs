@@ -14,6 +14,6 @@ namespace UntisExportService.Core.Settings.External.Schild.Json
         public List<string> GradesWithCourseNameAsSubject { get; set; } = new List<string>();
 
         [JsonProperty("subject_conversation_rules")]
-        public List<UntisToExternalRule> SubjectConversationRules { get; set; } = new List<UntisToExternalRule>();
+        public List<UntisToSchildRule> SubjectConversationRules { get; set; } = new List<UntisToSchildRule>();
     }
 }
