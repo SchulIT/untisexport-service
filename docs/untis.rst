@@ -7,6 +7,11 @@ importiert werden.
 Schritt 1: Export-Format importieren
 ####################################
 
+Damit Untis in das richtige HTML-Format exportiert, müssen zunächst die Format-Dateien in Untis geladen werden:
+
+- `Vertretungsplan-Format <https://raw.githubusercontent.com/SchulIT/untisexport/master/doc/vertretungsplan.gpf>`_
+- `Stundenplan-Format <https://raw.githubusercontent.com/SchulIT/untisexport/master/doc/stundenplan.gpf>`_
+
 Zunächst im Menü unter "Import/Export" die Kategorie "Untis" auswählen und dort die Schnittstelle "Formate/Fenstergruppen/Ribbon" anklicken.
 
 .. image:: images/untis-import-1.png
