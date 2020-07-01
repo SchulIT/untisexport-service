@@ -60,13 +60,13 @@ stages:
     - task: CmdLine@2
       displayName: Copy and rename MSI (de)
       inputs:
-        script: copy UntisExportService.Installer\bin\Release\de-de\UntisExportService.Installer.msi output\setup-$(Build.SourceBranchName)-de.msi
+        script: copy UntisExportService.Installer\bin\$(buildPlatform)\Release\de-de\UntisExportService.Installer.msi output\setup-$(Build.SourceBranchName)-de.msi
       condition: succeeded()
 
     - task: CmdLine@2
       displayName: Copy and rename MSI (en)
       inputs:
-        script: copy UntisExportService.Installer\bin\Release\en-us\UntisExportService.Installer.msi output\setup-$(Build.SourceBranchName)-en.msi
+        script: copy UntisExportService.Installer\bin\$(buildPlatform)\Release\en-us\UntisExportService.Installer.msi output\setup-$(Build.SourceBranchName)-en.msi
       condition: succeeded()
     
     - task: PublishPipelineArtifact@1
