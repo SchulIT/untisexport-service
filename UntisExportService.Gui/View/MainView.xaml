@@ -6,7 +6,7 @@
         xmlns:fluent="urn:fluent-ribbon"
         mc:Ignorable="d"
         DataContext="{Binding Source={StaticResource ViewModelLocator}, Path=Main}"
-        Title="MainView" Height="450" Width="800">
+        Title="Untis Export Service" Height="450" Width="800">
     <DockPanel>
         <fluent:Ribbon DockPanel.Dock="Top" IsQuickAccessToolBarVisible="False">
             <fluent:Ribbon.Menu>
@@ -295,6 +295,10 @@
                             </Viewbox>
                         </fluent:Button.LargeIcon>
                     </fluent:Button>
+                </fluent:RibbonGroupBox>
+
+                <fluent:RibbonGroupBox Header="Optionen">
+                    <fluent:CheckBox x:Name="checkEnableDebugOutput">Erweitere Ausgabe aktivieren</fluent:CheckBox>
                 </fluent:RibbonGroupBox>
             </fluent:RibbonTabItem>
         </fluent:Ribbon>

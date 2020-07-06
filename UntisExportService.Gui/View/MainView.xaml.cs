@@ -32,6 +32,15 @@ namespace UntisExportService.Gui.View
                         loggerListView.ScrollIntoView(target.Events[target.Events.Count - 1]);
                     }
                 };
+
+                checkEnableDebugOutput.Checked += delegate
+                {
+                    target.EnableDebugOutput = true;
+                };
+                checkEnableDebugOutput.Unchecked += delegate
+                {
+                    target.EnableDebugOutput = false;
+                };
             }
             else
             {
