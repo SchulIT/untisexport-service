@@ -60,7 +60,7 @@ namespace UntisExportService.Core.External.Schild
                 studyGroupsTask.Wait();
                 var studyGroups = studyGroupsTask.Result;
 
-                logger.LogInformation($"Got {studyGroups.Count} studygroups from SchILD");
+                logger.LogDebug($"Got {studyGroups.Count} studygroups from SchILD");
 
                 foreach (var studyGroup in studyGroups.Where(x => x.Type == StudyGroupType.Grade))
                 {

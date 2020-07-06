@@ -47,7 +47,7 @@ namespace UntisExportService.Core.Tuitions.Schild
                 schoolInfoTask.Wait();
                 var schoolInfo = schoolInfoTask.Result;
 
-                logger.LogInformation($"Current academic year: {schoolInfo.CurrentYear} - section {schoolInfo.CurrentSection}");
+                logger.LogDebug($"Current academic year: {schoolInfo.CurrentYear} - section {schoolInfo.CurrentSection}");
 
                 var tuitions = schildAdapter.LoadTuitions(schoolInfo.CurrentYear.Value, schoolInfo.CurrentSection.Value);
 
