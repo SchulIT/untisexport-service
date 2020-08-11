@@ -317,13 +317,14 @@ namespace UntisExportService.Core.Outputs.Icc
                 foreach (var grade in substitution.Grades)
                 {
                     string tuition = null;
-                    if (string.IsNullOrEmpty(substitution.Subject))
-                    {
-                        tuition = tuitionResolver.ResolveStudyGroup(grade);
-                    }
-                    else
+                    if (!string.IsNullOrEmpty(substitution.Subject))
                     {
                         tuition = tuitionResolver.ResolveStudyGroup(grade, substitution.Subject, substitution.Teachers.FirstOrDefault());
+                    }
+                    
+                    if(tuition == null)
+                    {
+                        tuition = tuitionResolver.ResolveStudyGroup(grade);
                     }
 
                     if (tuition != null)
@@ -350,17 +351,25 @@ namespace UntisExportService.Core.Outputs.Icc
                  */
                 var replacementStudyGroups = new List<string>();
 
-                foreach (var grade in substitution.ReplacementGrades)
+                if (substitution.Subject != substitution.ReplacementSubject && !string.IsNullOrEmpty(substitution.ReplacementSubject))
                 {
-                    var tuition = tuitionResolver.ResolveStudyGroup(grade);
+                    foreach (var grade in substitution.ReplacementGrades)
+                    {
+                        string tuition = null;
+                        if (!string.IsNullOrEmpty(substitution.ReplacementSubject))
+                        {
+                            tuition = tuitionResolver.ResolveStudyGroup(grade, substitution.ReplacementSubject, substitution.Teachers.FirstOrDefault());
+                        }
 
-                    if (tuition != null)
-                    {
-                        replacementStudyGroups.Add(tuition);
-                    }
-                    else
-                    {
-                        logger.LogDebug($"Did not find study group for grade '{grade}'.");
+                        if (tuition == null)
+                        {
+                            tuition = tuitionResolver.ResolveStudyGroup(grade);
+                        }
+
+                        if (tuition != null)
+                        {
+                            studyGroups.Add(tuition);
+                        }
                     }
                 }
 
