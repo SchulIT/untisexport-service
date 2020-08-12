@@ -351,25 +351,22 @@ namespace UntisExportService.Core.Outputs.Icc
                  */
                 var replacementStudyGroups = new List<string>();
 
-                if (substitution.Subject != substitution.ReplacementSubject && !string.IsNullOrEmpty(substitution.ReplacementSubject))
+                foreach (var grade in substitution.ReplacementGrades)
                 {
-                    foreach (var grade in substitution.ReplacementGrades)
+                    string tuition = null;
+                    if (!string.IsNullOrEmpty(substitution.ReplacementSubject))
                     {
-                        string tuition = null;
-                        if (!string.IsNullOrEmpty(substitution.ReplacementSubject))
-                        {
-                            tuition = tuitionResolver.ResolveStudyGroup(grade, substitution.ReplacementSubject, substitution.Teachers.FirstOrDefault());
-                        }
+                        tuition = tuitionResolver.ResolveStudyGroup(grade, substitution.ReplacementSubject, substitution.Teachers.FirstOrDefault());
+                    }
 
-                        if (tuition == null)
-                        {
-                            tuition = tuitionResolver.ResolveStudyGroup(grade);
-                        }
+                    if (tuition == null)
+                    {
+                        tuition = tuitionResolver.ResolveStudyGroup(grade);
+                    }
 
-                        if (tuition != null)
-                        {
-                            studyGroups.Add(tuition);
-                        }
+                    if (tuition != null)
+                    {
+                        replacementStudyGroups.Add(tuition);
                     }
                 }
 
