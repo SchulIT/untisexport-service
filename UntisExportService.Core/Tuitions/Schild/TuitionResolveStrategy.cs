@@ -86,11 +86,23 @@ namespace UntisExportService.Core.Tuitions.Schild
 
         public override string ResolveStudyGroup(string grade)
         {
+            if (grade == null)
+            {
+                logger.LogDebug($"Grade must not be empty.");
+                return null;
+            }
+
             return gradeStudyGroupsCache.ContainsKey(grade) ? GetStudyGroupId(gradeStudyGroupsCache[grade]) : null;
         }
 
         public override string ResolveStudyGroup(string grade, string subject, string teacher)
         {
+            if (grade == null)
+            {
+                logger.LogDebug($"Grade must not be empty.");
+                return null;
+            }
+
             if (subject == null)
             {
                 logger.LogDebug($"Subject must not be empty.");
@@ -140,6 +152,12 @@ namespace UntisExportService.Core.Tuitions.Schild
 
         public override string ResolveTuition(string grade, string subject, string teacher)
         {
+            if(grade == null)
+            {
+                logger.LogDebug($"Grade must not be empty.");
+                return null;
+            }
+
             if(subject == null)
             {
                 logger.LogDebug($"Subject must not be empty.");
