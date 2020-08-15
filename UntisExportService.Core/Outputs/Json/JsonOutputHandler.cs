@@ -30,6 +30,8 @@ namespace UntisExportService.Core.Outputs.Json
 
         public override bool CanHandleTuitions { get { return true; } }
 
+        public override bool CanHandleFreeLessons { get { return true; } }
+
         private readonly ILogger<JsonOutputHandler> logger;
 
         public JsonOutputHandler(ILogger<JsonOutputHandler> logger)
@@ -90,6 +92,11 @@ namespace UntisExportService.Core.Outputs.Json
         protected override Task HandleTuitionEvent(TuitionEvent @event, IFileOutput outputSettings)
         {
             return WriteJson(@event.Tuitions, outputSettings, "tuitions.json");
+        }
+
+        protected override Task HandleFreeLessonEvent(FreeLessonEvent @event, IFileOutput outputSettings)
+        {
+            return WriteJson(@event.FreeLessons, outputSettings, "free_lessons.json");
         }
     }
 }

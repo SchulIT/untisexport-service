@@ -7,5 +7,7 @@
         IHtmlSubstitutionOptions Options { get; }
 
         IHtmlAbsenceSettings AbsenceSettings { get; }
+
+        IHtmlFreeLessonSettings FreeLessonSettings { get; }
     }
 }

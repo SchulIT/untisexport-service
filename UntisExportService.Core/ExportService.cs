@@ -216,6 +216,10 @@ namespace UntisExportService.Core
             {
                 HandleTuitionEvent(obj as TuitionEvent);
             }
+            else if (obj is FreeLessonEvent)
+            {
+                HandleFreeLessonEvent(obj as FreeLessonEvent);
+            }
         }
 
         private void Handle(string entity, Action<IOutputHandler, IOutput> handle)
@@ -282,6 +286,11 @@ namespace UntisExportService.Core
         private void HandleExamEvent(ExamEvent obj)
         {
             Handle("exam", (handler, settings) => handler.HandleExamEvent(obj, settings));
+        }
+
+        private void HandleFreeLessonEvent(FreeLessonEvent obj)
+        {
+            Handle("free_lesson", (handler, settings) => handler.HandleFreeLessonEvent(obj, settings));
         }
     }
 }

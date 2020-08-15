@@ -24,6 +24,9 @@ namespace UntisExportService.Core.Settings.Inputs.Substitutions.Json
         [JsonProperty("absences")]
         public IHtmlAbsenceSettings AbsenceSettings { get; } = new HtmlAbsenceSettings();
 
+        [JsonProperty("free_lessons")]
+        public IHtmlFreeLessonSettings FreeLessonSettings { get; } = new HtmlFreeLessonSettings();
+
         [JsonProperty("type_replacements")]
         public Dictionary<string, string> TypeReplacements { get; set; } = new Dictionary<string, string>();
 

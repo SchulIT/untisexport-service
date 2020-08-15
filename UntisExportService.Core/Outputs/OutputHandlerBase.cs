@@ -21,6 +21,7 @@ namespace UntisExportService.Core.Outputs
         public abstract bool CanHandleSupervisions { get; }
         public abstract bool CanHandleTimetable { get; }
         public abstract bool CanHandleTuitions { get; }
+        public abstract bool CanHandleFreeLessons { get; }
 
         private T CastSettings(IOutput outputSettings)
         {
@@ -87,5 +88,12 @@ namespace UntisExportService.Core.Outputs
         }
 
         protected abstract Task HandleTuitionEvent(TuitionEvent @event, T outputSettings);
+
+        public Task HandleFreeLessonEvent(FreeLessonEvent @event, IOutput outputSettings)
+        {
+            return HandleFreeLessonEvent(@event, CastSettings(outputSettings));
+        }
+
+        protected abstract Task HandleFreeLessonEvent(FreeLessonEvent @event, T outputSettings);
     }
 }

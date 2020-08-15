@@ -39,7 +39,8 @@ namespace UntisExportService.Core.Extensions
                 EmptyValues = input.Options.EmptyValues.ToList(),
                 IncludeAbsentValues = input.Options.InlcudeAbsentValues,
                 ColumnSettings = input.ColumnSettings.ToUntis(),
-                AbsenceSettings = input.AbsenceSettings.ToUntis()
+                AbsenceSettings = input.AbsenceSettings.ToUntis(),
+                FreeLessonSettings = input.FreeLessonSettings.ToUntis()
             };
         }
 
@@ -50,6 +51,17 @@ namespace UntisExportService.Core.Extensions
                 ParseAbsences = settings.ParseAbsences,
                 TeacherIdentifier = settings.TeacherIdentifier,
                 StudyGroupIdentifier = settings.StudyGroupIdentifier
+            };
+        }
+
+        public static FreeLessonSettings ToUntis(this IHtmlFreeLessonSettings settings)
+        {
+            return new FreeLessonSettings
+            {
+                ParseFreeLessons = settings.ParseFreeLessons,
+                RemoveInfotext = settings.RemoveInfotext,
+                FreeLessonIdentifier = settings.FreeLessonIdentifier,
+                LessonIdentifier = settings.LessonIdentifier
             };
         }
 

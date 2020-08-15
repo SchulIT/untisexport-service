@@ -42,6 +42,8 @@ namespace UntisExportService.Core.Outputs.Icc
 
         public override bool CanHandleTuitions { get { return false; } }
 
+        public override bool CanHandleFreeLessons { get { return true; } }
+
         private readonly WeekMappingHelper weekMappingHelper;
         private readonly IExamWritersResolver examWritersResolver;
         private readonly ITuitionResolver tuitionResolver;
@@ -619,6 +621,24 @@ namespace UntisExportService.Core.Outputs.Icc
             await HandleResponseAsync(response);
         }
 
+        protected override async Task HandleFreeLessonEvent(FreeLessonEvent @event, IIccOutput outputSettings)
+        {
+            Configure(outputSettings);
+
+            var freeLessons = @event.FreeLessons.Select(freeLesson =>
+            {
+                return new FreeLessonTimespanData
+                {
+                    Start = freeLesson.Start,
+                    End = freeLesson.End,
+                    Date = freeLesson.Date
+                };
+            });
+
+            var response = await iccImporter.ImportFreeLessonTimespansAsync(freeLessons.ToList());
+            await HandleResponseAsync(response);
+        }
+
         protected override Task HandleTuitionEvent(TuitionEvent @event, IIccOutput outputSettings)
         {
             throw new NotImplementedException();
@@ -669,5 +689,6 @@ namespace UntisExportService.Core.Outputs.Icc
 
             return $"{exam.Date:yyyy-MM-dd}-{gradesAsString}-{coursesAsString}-{exam.Name}";
         }
+
     }
 }

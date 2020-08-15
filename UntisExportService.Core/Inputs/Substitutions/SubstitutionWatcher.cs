@@ -43,6 +43,7 @@ namespace UntisExportService.Core.Inputs.Substitutions
             var substitutions = new List<Substitution>();
             var infotexts = new List<Infotext>();
             var absences = new List<Absence>();
+            var freeLessons = new List<FreeLessonsTimespan>();
 
             foreach(var adapter in adapters)
             {
@@ -66,6 +67,7 @@ namespace UntisExportService.Core.Inputs.Substitutions
                         substitutions.AddRange(result.Substitutions);
                         infotexts.AddRange(result.Infotexts);
                         absences.AddRange(result.Absences);
+                        freeLessons.AddRange(result.FreeLessons);
                     }
 
                     await ReplaceSubstitutionTypesAsync(substitutions);
@@ -77,7 +79,8 @@ namespace UntisExportService.Core.Inputs.Substitutions
             {
                 new SubstitutionEvent(substitutions),
                 new AbsenceEvent(absences),
-                new InfotextEvent(infotexts)
+                new InfotextEvent(infotexts),
+                new FreeLessonEvent(freeLessons)
             };
         }
 

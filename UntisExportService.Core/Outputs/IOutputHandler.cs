@@ -27,6 +27,8 @@ namespace UntisExportService.Core.Outputs
 
         bool CanHandleTuitions { get; }
 
+        bool CanHandleFreeLessons { get; }
+
         Task HandleSubstitutionEvent(SubstitutionEvent @event, IOutput outputSettings);
 
         Task HandleInfotextEvent(InfotextEvent @event, IOutput outputSettings);
@@ -42,5 +44,7 @@ namespace UntisExportService.Core.Outputs
         Task HandleSupervisionEvent(SupervisionEvent @event, IOutput outputSettings);
 
         Task HandleTuitionEvent(TuitionEvent @event, IOutput outputSettings);
+
+        Task HandleFreeLessonEvent(FreeLessonEvent @event, IOutput outputSettings);
     }
 }
