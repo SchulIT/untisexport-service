@@ -1,4 +1,6 @@
-﻿namespace UntisExportService.Core.Settings.Inputs.Substitutions
+﻿using System.Collections.Generic;
+
+namespace UntisExportService.Core.Settings.Inputs.Substitutions
 {
     public interface IHtmlSubstitutionInput : ISubstitutionInput, IHtmlInput
     {
@@ -9,5 +11,7 @@
         IHtmlAbsenceSettings AbsenceSettings { get; }
 
         IHtmlFreeLessonSettings FreeLessonSettings { get; }
+
+        List<string> TypesWithRemovedReplacementColumns { get; }
     }
 }

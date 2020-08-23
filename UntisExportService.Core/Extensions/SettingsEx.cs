@@ -40,7 +40,8 @@ namespace UntisExportService.Core.Extensions
                 IncludeAbsentValues = input.Options.InlcudeAbsentValues,
                 ColumnSettings = input.ColumnSettings.ToUntis(),
                 AbsenceSettings = input.AbsenceSettings.ToUntis(),
-                FreeLessonSettings = input.FreeLessonSettings.ToUntis()
+                FreeLessonSettings = input.FreeLessonSettings.ToUntis(),
+                TypesWithRemovedReplacementColumns = input.TypesWithRemovedReplacementColumns
             };
         }
 

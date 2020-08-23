@@ -32,5 +32,8 @@ namespace UntisExportService.Core.Settings.Inputs.Substitutions.Json
 
         [JsonProperty("remove_types")]
         public string[] RemoveSubstitutionsWithTypes { get; set; } = Array.Empty<string>();
+
+        [JsonProperty("types_with_removed_replacement_columns")]
+        public List<string> TypesWithRemovedReplacementColumns { get; set; } = new List<string>();
     }
 }
