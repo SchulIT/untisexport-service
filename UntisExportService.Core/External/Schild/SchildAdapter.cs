@@ -136,6 +136,11 @@ namespace UntisExportService.Core.External.Schild
                             subject = studyGroup.Name;
                         }
 
+                        if(settings.SubjectsWithCourseNameAsSubject.Contains(subject))
+                        {
+                            subject = studyGroup.Name;
+                        }
+
                         var courseRule = settings.SubjectConversationRules.FirstOrDefault(x => x.IsCourse && x.ExternalSubject == studyGroup.Name && x.Grades.MatchesAny(grade.Name));
 
                         if (courseRule != null)
