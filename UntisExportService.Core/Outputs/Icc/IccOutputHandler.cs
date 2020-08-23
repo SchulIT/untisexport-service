@@ -9,7 +9,6 @@ using SchulIT.UntisExport.Substitutions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UntisExportService.Core.ExamWriters;
@@ -77,7 +76,7 @@ namespace UntisExportService.Core.Outputs.Icc
                 var importResponse = response as ImportResponse;
                 logger.LogInformation($"Import successful: {importResponse.AddedCount} items added, {importResponse.UpdatedCount} items updated, {importResponse.RemovedCount} items removed and {importResponse.IgnoredEntities.Count} items ignored.");
 
-                if(importResponse.IgnoredEntities.Count > 0)
+                if (importResponse.IgnoredEntities.Count > 0)
                 {
                     logger.LogInformation(JsonConvert.SerializeObject(importResponse.IgnoredEntities));
                 }
@@ -92,7 +91,7 @@ namespace UntisExportService.Core.Outputs.Icc
 
         private string ConvertObjectiveTypeToString(Absence.ObjectiveType type)
         {
-            switch(type)
+            switch (type)
             {
                 case Absence.ObjectiveType.StudyGroup:
                     return "study_group";
@@ -116,7 +115,7 @@ namespace UntisExportService.Core.Outputs.Icc
             {
                 var objective = absence.Objective;
 
-                if(absence.Type == Absence.ObjectiveType.StudyGroup)
+                if (absence.Type == Absence.ObjectiveType.StudyGroup)
                 {
                     objective = tuitionResolver.ResolveStudyGroup(absence.Objective);
                 }
@@ -147,17 +146,17 @@ namespace UntisExportService.Core.Outputs.Icc
 
             var section = new List<Tuple<string, string>>();
 
-            if(!string.IsNullOrEmpty(outputSettings.SetNameAsIdPattern))
+            if (!string.IsNullOrEmpty(outputSettings.SetNameAsIdPattern))
             {
                 regexUseNameAsId = new Regex(outputSettings.SetNameAsIdPattern);
             }
 
-            if(!string.IsNullOrEmpty(outputSettings.SetNoStudentsPattern))
+            if (!string.IsNullOrEmpty(outputSettings.SetNoStudentsPattern))
             {
                 regexNoStudents = new Regex(outputSettings.SetNoStudentsPattern);
             }
 
-            if(!string.IsNullOrEmpty(outputSettings.StudentSubsetPattern))
+            if (!string.IsNullOrEmpty(outputSettings.StudentSubsetPattern))
             {
                 regexStudentSubset = new Regex(outputSettings.StudentSubsetPattern);
             }
@@ -168,9 +167,9 @@ namespace UntisExportService.Core.Outputs.Icc
             {
                 var tuitions = new List<string>();
 
-                foreach(var course in exam.Courses)
+                foreach (var course in exam.Courses)
                 {
-                    foreach(var grade in exam.Grades)
+                    foreach (var grade in exam.Grades)
                     {
                         var tuition = tuitionResolver.ResolveTuition(grade, course, null);
 
@@ -187,14 +186,14 @@ namespace UntisExportService.Core.Outputs.Icc
 
                 var id = GetOrComputeId(exam);
 
-                if(regexUseNameAsId != null && regexUseNameAsId.IsMatch(exam.Name))
+                if (regexUseNameAsId != null && regexUseNameAsId.IsMatch(exam.Name))
                 {
                     id = exam.Name;
                 }
 
                 var students = new List<string>();
 
-                if(regexNoStudents == null || !regexNoStudents.IsMatch(exam.Name))
+                if (regexNoStudents == null || !regexNoStudents.IsMatch(exam.Name))
                 {
                     var examWriters = new List<string>();
 
@@ -233,7 +232,7 @@ namespace UntisExportService.Core.Outputs.Icc
                 var originalId = id;
                 var roomAdded = false;
                 var number = 1;
-                while(examIds.Contains(id))
+                while (examIds.Contains(id))
                 {
                     if (roomAdded == false && exam.Rooms.Count > 0)
                     {
@@ -313,7 +312,7 @@ namespace UntisExportService.Core.Outputs.Icc
             {
                 /**
                  * Retrieve study groups by checking the subject (if any) and every given grade.
-                 */ 
+                 */
                 var studyGroups = new List<string>();
 
                 foreach (var grade in substitution.Grades)
@@ -323,8 +322,8 @@ namespace UntisExportService.Core.Outputs.Icc
                     {
                         tuition = tuitionResolver.ResolveStudyGroup(grade, substitution.Subject, substitution.Teachers.FirstOrDefault());
                     }
-                    
-                    if(tuition == null)
+
+                    if (tuition == null)
                     {
                         tuition = tuitionResolver.ResolveStudyGroup(grade);
                     }
@@ -412,7 +411,7 @@ namespace UntisExportService.Core.Outputs.Icc
             var mapping = outputSettings.WeekMapping;
             var weeks = mapping.Weeks;
 
-            if(mapping.UseWeekModulo)
+            if (mapping.UseWeekModulo)
             {
                 weeks = weekMappingHelper.ComputeMapping(mapping.Weeks);
             }
@@ -472,140 +471,75 @@ namespace UntisExportService.Core.Outputs.Icc
                 return;
             }
 
-            var lessons = new Dictionary<string, TimetableLessonData>();
-
-            string computeAddedLessonKey(int day, int lesson, string week, string tuition, string room) => $"{day}-{lesson}-{week}-{tuition}-{room}";
+            var lessons = new List<TimetableLessonData>();
 
             try
             {
-                foreach (var lesson in @event.Lessons)
-                { 
-                    var tuition = tuitionResolver.ResolveTuition(lesson.Grade, lesson.Subject, lesson.Teacher);
+                logger.LogDebug("Group lessons by week, lesson, room, subject and teacher...");
 
-                    if (tuition == null)
+                var groups = @event.Lessons.GroupBy(l => new { Weeks = string.Join(',', l.Weeks), l.Day, l.LessonStart, l.LessonEnd, l.Subject, l.Room });
+
+                foreach (var group in groups)
+                {
+                    var teachers = new List<string>();
+                    var tuitions = new Dictionary<string, string>();
+                    var grades = new List<string>();
+
+                    foreach (var lesson in group)
                     {
-                        logger.LogDebug($"Cannot resolve tuition with subject {lesson.Subject} for grade {lesson.Grade} and teacher {lesson.Teacher}. Make freestyle lesson.");
-                    }
-
-                    foreach (var week in lesson.Weeks)
-                    {
-                        // ICC only supports double lessons max -> split lessons up!
-                        var duration = lesson.LessonEnd - lesson.LessonStart;
-
-                        if (duration > 1)
+                        if (!teachers.Contains(lesson.Teacher))
                         {
-                            // Split lessons into separate lessons
-                            for (int i = 0; i <= duration; i++)
+                            teachers.Add(lesson.Teacher);
+                        }
+
+                        if (!string.IsNullOrEmpty(lesson.Grade) && !grades.Contains(lesson.Grade))
+                        {
+                            grades.Add(lesson.Grade);
+                            var resolvedTuition = tuitionResolver.ResolveTuition(lesson.Grade, lesson.Subject, lesson.Teacher);
+
+                            if (resolvedTuition != null)
                             {
-                                var data = new TimetableLessonData
-                                {
-                                    Tuition = tuition,
-                                    Lesson = lesson.LessonStart + i,
-                                    IsDoubleLesson = false,
-                                    Room = lesson.Room,
-                                    Day = lesson.Day,
-                                    Week = week
-                                };
-
-                                if (!string.IsNullOrEmpty(lesson.Teacher))
-                                {
-                                    data.Teachers.Add(lesson.Teacher);
-                                }
-
-                                if (tuition == null)
-                                {
-                                    data.Subject = lesson.Subject;
-                                }
-
-                                var id = computeAddedLessonKey(lesson.Day, lesson.LessonStart + i, week, tuition ?? lesson.Subject, lesson.Room);
-
-                                if (!lessons.ContainsKey(id))
-                                {
-                                    lessons.Add(id, data);
-                                }
-                                else
-                                {
-                                    if (!string.IsNullOrEmpty(lesson.Teacher) && lessons[id].Teachers.Contains(lesson.Teacher))
-                                    {
-                                        lessons[id].Teachers.Add(lesson.Teacher);
-                                    }
-                                }
+                                tuitions.Add(lesson.Grade, resolvedTuition);
                             }
                         }
-                        else
+                    }
+
+                    var distinctTuitions = tuitions.Select(x => x.Value).Distinct().ToList();
+
+                    if (distinctTuitions.Count > 1)
+                    {
+                        logger.LogDebug($"Found more than one tuition for lesson (day: {group.Key.Day}, weeks: {string.Join(',', group.Key.Weeks)}, lesson: {group.Key.LessonStart}, subject: {group.Key.Subject}, room: {group.Key.Room}, grades: { string.Join(',', grades)}.");
+                    }
+
+                    if (distinctTuitions.Count == 0)
+                    {
+                        logger.LogDebug($"Found no tuition for lesson (day: {group.Key.Day}, weeks: {string.Join(',', group.Key.Weeks)}, lesson: {group.Key.LessonStart}, subject: {group.Key.Subject}, room: {group.Key.Room}, grades: { string.Join(',', grades)}.");
+                    }
+
+                    var subject = group.Key.Subject;
+                    var duration = group.Key.LessonEnd - group.Key.LessonStart + 1;
+
+                    foreach (var week in group.Key.Weeks.Split(','))
+                    {
+                        for(int i = 0; i < duration; i += 2)
                         {
-                            var data = new TimetableLessonData
-                            {
-                                Tuition = tuition,
-                                Lesson = lesson.LessonStart,
-                                IsDoubleLesson = lesson.LessonStart != lesson.LessonEnd,
-                                Room = lesson.Room,
-                                Day = lesson.Day,
-                                Week = week
-                            };
+                            var lessonStart = group.Key.LessonStart + i;
+                            var lessonEnd = Math.Min(lessonStart + 1, group.Key.LessonEnd);
 
-                            if (!string.IsNullOrEmpty(lesson.Teacher))
+                            if (distinctTuitions.Count > 1)
                             {
-                                data.Teachers.Add(lesson.Teacher);
-                            }
-
-                            if (tuition == null)
-                            {
-                                data.Subject = lesson.Subject;
-                            }
-
-                            var id = computeAddedLessonKey(lesson.Day, lesson.LessonStart, week, tuition ?? lesson.Subject, lesson.Room);
-                            var nextLessonId = computeAddedLessonKey(lesson.Day, lesson.LessonStart + 1, week, tuition ?? lesson.Subject, lesson.Room);
-
-                            if (lessons.ContainsKey(id))
-                            {
-                                foreach (var teacher in lessons[id].Teachers)
+                                foreach (var kv in tuitions)
                                 {
-                                    if (!data.Teachers.Contains(teacher))
-                                    {
-                                        data.Teachers.Add(teacher);
-                                    }
+                                    lessons.Add(CreateTimetableLessonData(kv.Value, new List<string> { kv.Key }, teachers, lessonStart, lessonEnd, group.Key.Room, group.Key.Day, week, null));
                                 }
                             }
-
-                            if (lessons.ContainsKey(nextLessonId))
+                            else if (distinctTuitions.Count == 1)
                             {
-                                foreach (var teacher in lessons[nextLessonId].Teachers)
-                                {
-                                    if (!data.Teachers.Contains(teacher))
-                                    {
-                                        data.Teachers.Add(teacher);
-                                    }
-                                }
+                                lessons.Add(CreateTimetableLessonData(distinctTuitions.First(), grades, teachers, lessonStart, lessonEnd, group.Key.Room, group.Key.Day, week, null));
                             }
-
-                            if (data.IsDoubleLesson)
+                            else
                             {
-                                if (lessons.ContainsKey(id))
-                                {
-                                    lessons[id] = data;
-                                }
-                                else
-                                {
-                                    lessons.Add(id, data);
-                                }
-
-                                if (lessons.ContainsKey(nextLessonId))
-                                {
-                                    lessons[nextLessonId] = data;
-                                }
-                                else
-                                {
-                                    lessons.Add(nextLessonId, data);
-                                }
-                            }
-                            else if (!lessons.ContainsKey(id))
-                            {
-                                lessons.Add(id, data);
-                            }
-                            else if (lessons.ContainsKey(id))
-                            {
-                                lessons[id] = data;
+                                lessons.Add(CreateTimetableLessonData(null, grades, teachers, lessonStart, lessonEnd, group.Key.Room, group.Key.Day, week, subject));
                             }
                         }
                     }
@@ -617,8 +551,37 @@ namespace UntisExportService.Core.Outputs.Icc
                 return;
             }
 
-            var response = await iccImporter.ImportTimetableLessonsAsync(period, lessons.Select(x => { x.Value.Id = x.Key; return x.Value; }).Distinct().ToList());
+            var response = await iccImporter.ImportTimetableLessonsAsync(period, lessons);
             await HandleResponseAsync(response);
+        }
+
+        private string ComputeTimetableLessonId(int day, int lesson, string week, string tuition, string room) => $"{day}-{lesson}-{week}-{tuition}-{room}";
+
+        private TimetableLessonData CreateTimetableLessonData(string tuition, List<string> grades, List<string> teachers, int lessonStart, int lessonEnd, string room, int day, string week, string subject)
+        {
+            var data = new TimetableLessonData
+            {
+                Tuition = tuition,
+                Lesson = lessonStart,
+                IsDoubleLesson = lessonEnd == lessonStart + 1,
+                Room = room,
+                Day = day,
+                Week = week,
+                Subject = subject,
+                Id = ComputeTimetableLessonId(day, lessonStart, week, tuition ?? subject, room)
+            };
+
+            foreach (var teacher in teachers)
+            {
+                data.Teachers.Add(teacher);
+            }
+
+            foreach (var grade in grades)
+            {
+                data.Grades.Add(grade);
+            }
+
+            return data;
         }
 
         protected override async Task HandleFreeLessonEvent(FreeLessonEvent @event, IIccOutput outputSettings)
