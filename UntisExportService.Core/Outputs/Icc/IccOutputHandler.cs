@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using SchulIT.IccImport;
 using SchulIT.IccImport.Models;
 using SchulIT.IccImport.Response;
-using SchulIT.SchildExport.Models;
 using SchulIT.UntisExport.Exams;
 using SchulIT.UntisExport.Substitutions;
 using System;
@@ -615,29 +614,6 @@ namespace UntisExportService.Core.Outputs.Icc
             }
 
             return input;
-        }
-
-        private string GetStudyGroupId(StudyGroup studyGroup)
-        {
-            var grades = studyGroup.Grades.Select(x => x.Name).Distinct().OrderBy(x => x);
-            var gradesString = string.Join("-", grades);
-
-            if (studyGroup.Type == StudyGroupType.Course)
-            {
-                return $"{gradesString}-{studyGroup.Name}";
-            }
-
-            return gradesString;
-        }
-
-        private string GetTuitionId(Tuition tuition, StudyGroup studyGroup)
-        {
-            if (studyGroup?.Id != null)
-            {
-                return GetStudyGroupId(studyGroup);
-            }
-
-            return $"{tuition.SubjectRef.Abbreviation}-{tuition.StudyGroupRef.Name}";
         }
 
         private string GetOrComputeId(Exam exam)

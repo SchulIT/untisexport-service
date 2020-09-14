@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using SchulIT.SchildExport.Models;
+using SchulIT.SchildIccImporter.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,20 +70,6 @@ namespace UntisExportService.Core.Tuitions.Schild
             }
         }
 
-        /// <summary>
-        /// TODO: Make this configurable
-        /// </summary>
-        /// <param name="studyGroup"></param>
-        /// <returns></returns>
-        private string GetStudyGroupName(StudyGroup studyGroup)
-        {
-            if (studyGroup.Type == StudyGroupType.Course)
-            {
-                return studyGroup.Name;
-            }
-
-            return GetStudyGroupId(studyGroup);
-        }
 
         public override string ResolveStudyGroup(string grade)
         {
@@ -92,7 +79,7 @@ namespace UntisExportService.Core.Tuitions.Schild
                 return null;
             }
 
-            return gradeStudyGroupsCache.ContainsKey(grade) ? GetStudyGroupId(gradeStudyGroupsCache[grade]) : null;
+            return gradeStudyGroupsCache.ContainsKey(grade) ? IdResolver.Resolve(gradeStudyGroupsCache[grade]) : null;
         }
 
         public override string ResolveStudyGroup(string grade, string subject, string teacher)
@@ -125,7 +112,7 @@ namespace UntisExportService.Core.Tuitions.Schild
 
             if (candidates.Count() == 1)
             {
-                return GetStudyGroupId(candidates.First().StudyGroup);
+                return IdResolver.Resolve(candidates.First().StudyGroup);
             }
 
             var teachers = candidates.Select(x => x.Tuition.TeacherRef.Acronym).ToList();
@@ -142,7 +129,7 @@ namespace UntisExportService.Core.Tuitions.Schild
             {
                 if (candidate.Tuition.TeacherRef.Acronym == teacher)
                 {
-                    return GetTuitionId(candidate.Tuition, candidate.StudyGroup);
+                    return IdResolver.Resolve(candidate.Tuition, candidate.StudyGroup);
                 }
             }
 
@@ -180,7 +167,7 @@ namespace UntisExportService.Core.Tuitions.Schild
 
             if(candidates.Count() == 1)
             {
-                return GetTuitionId(candidates.First().Tuition, candidates.First().StudyGroup);
+                return IdResolver.Resolve(candidates.First().Tuition, candidates.First().StudyGroup);
             }
 
             if(string.IsNullOrEmpty(teacher))
@@ -193,7 +180,7 @@ namespace UntisExportService.Core.Tuitions.Schild
             {
                 if(candidate.Tuition.TeacherRef.Acronym == teacher)
                 {
-                    return GetTuitionId(candidate.Tuition, candidate.StudyGroup);
+                    return IdResolver.Resolve(candidate.Tuition, candidate.StudyGroup);
                 }
             }
 
@@ -201,27 +188,5 @@ namespace UntisExportService.Core.Tuitions.Schild
             return null;
         }
 
-        private string GetStudyGroupId(StudyGroup studyGroup)
-        {
-            var grades = studyGroup.Grades.Select(x => x.Name).Distinct().OrderBy(x => x);
-            var gradesString = string.Join("-", grades);
-
-            if (studyGroup.Type == StudyGroupType.Course)
-            {
-                return $"{gradesString}-{studyGroup.Name}";
-            }
-
-            return gradesString;
-        }
-
-        private string GetTuitionId(Tuition tuition, StudyGroup studyGroup)
-        {
-            if (studyGroup?.Id != null)
-            {
-                return GetStudyGroupId(studyGroup);
-            }
-
-            return $"{tuition.SubjectRef.Abbreviation}-{tuition.StudyGroupRef.Name}";
-        }
     }
 }

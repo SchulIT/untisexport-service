@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using SchulIT.SchildExport.Models;
+using SchulIT.SchildIccImporter.Core;
 using SchulIT.UntisExport.Exams;
 using System;
 using System.Collections.Generic;
@@ -103,7 +104,7 @@ namespace UntisExportService.Core.ExamWriters.Schild
                 return students;
             }
 
-            var match = tuitionCache[key].FirstOrDefault(x => GetTuitionId(x.Tuition, x.StudyGroup) == tuition);
+            var match = tuitionCache[key].FirstOrDefault(x => IdResolver.Resolve(x.Tuition, x.StudyGroup) == tuition);
 
             if(match == null)
             {
@@ -137,29 +138,6 @@ namespace UntisExportService.Core.ExamWriters.Schild
         public bool Supports(Settings.ExamWriters.IExamWritersResolver inputSetting)
         {
             return inputSetting is ISchildExamWritersResolver;
-        }
-
-        private string GetStudyGroupId(StudyGroup studyGroup)
-        {
-            var grades = studyGroup.Grades.Select(x => x.Name).Distinct().OrderBy(x => x);
-            var gradesString = string.Join("-", grades);
-
-            if (studyGroup.Type == StudyGroupType.Course)
-            {
-                return $"{gradesString}-{studyGroup.Name}";
-            }
-
-            return gradesString;
-        }
-
-        private string GetTuitionId(Tuition tuition, StudyGroup studyGroup)
-        {
-            if (studyGroup?.Id != null)
-            {
-                return GetStudyGroupId(studyGroup);
-            }
-
-            return $"{tuition.SubjectRef.Abbreviation}-{tuition.StudyGroupRef.Name}";
         }
     }
 }
