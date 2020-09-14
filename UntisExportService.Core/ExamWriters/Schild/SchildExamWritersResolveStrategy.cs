@@ -118,7 +118,7 @@ namespace UntisExportService.Core.ExamWriters.Schild
 
                 if (candidate == null)
                 {
-                    logger.LogError($"Did not find any rule for student {membership.Student.Id} (Grade: {membership.Grade}, Type: {membership.Type}, Section: {section.Section}. Ignore student.");
+                    logger.LogDebug($"Did not find any rule for student {membership.Student.Id} (Grade: {membership.Grade}, Type: {membership.Type}, Section: {section.Section}. Ignore student.");
                 }
                 else if(!string.IsNullOrWhiteSpace(start) && !string.IsNullOrWhiteSpace(end) && student != null && (String.Compare(student.Lastname.ToUpper(), start.ToUpper()) < 0 || student.Lastname.ToUpper().Substring(0, end.Length) != end.ToUpper()))
                 {
