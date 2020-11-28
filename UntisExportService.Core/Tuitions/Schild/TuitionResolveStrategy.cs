@@ -11,6 +11,15 @@ namespace UntisExportService.Core.Tuitions.Schild
 {
     public class TuitionResolveStrategy : AbstractTuitionResolveStrategy<ISchildTuitionResolver>
     {
+        /// <summary>
+        /// Number of minutes the cache will be hit instead of querying SchILD again.
+        /// </summary>
+        private const int CacheLifetimeInMinutes = 30;
+
+        /// <summary>
+        /// Datetime at which the cache was created.
+        /// </summary>
+        private DateTime? cacheCreatedAt = null;
 
         /// <summary>
         /// All grade study groups
@@ -36,6 +45,17 @@ namespace UntisExportService.Core.Tuitions.Schild
 
         public override void Initialize(ISchildTuitionResolver inputSetting)
         {
+            if(cacheCreatedAt != null)
+            {
+                var cacheAge = DateTime.Now - cacheCreatedAt.Value;
+
+                if(cacheAge.TotalMinutes < CacheLifetimeInMinutes)
+                {
+                    // Use cache instead of new query
+                    return;
+                }
+            }
+
             gradeStudyGroupsCache.Clear();
             tuitionsCache.Clear();
 
@@ -63,6 +83,8 @@ namespace UntisExportService.Core.Tuitions.Schild
                 {
                     gradeStudyGroupsCache.Add(kv.Key, kv.Value);
                 }
+
+                cacheCreatedAt = DateTime.Now;
             }
             catch (Exception e)
             {
